@@ -24,9 +24,14 @@ local playerAnimation = gfx.animation.loop.new(1500, {playerStart1Scaled, player
 local gameState = "stopped"
 
 --Player Setup
-local playerInstance = Player(200, 120, 100)
+local playerInstance = Player(50, 200, 100)
 
-
+--Play Game
+local function playGame()
+    gameState = "playing"
+    playerInstance:add()
+    gfx.sprite.update()
+end
 
 --Update
 function pd.update()
@@ -37,9 +42,7 @@ function pd.update()
         gfx.drawText("Owl Invasion", 40, 25)
         gfx.drawText("Press A to Start", 25, 50)
         if pd.buttonJustPressed(pd.kButtonA) then
-            gameState = "playing"
-            playerInstance:add()
-            gfx.sprite.update()
+            playGame()
 
         end
     end
