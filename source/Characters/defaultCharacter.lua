@@ -4,12 +4,12 @@ local gfx <const> = pd.graphics
 
 class('DefaultCharacter').extends(gfx.sprite)
 
-function DefaultCharacter:init(x, y, image, health)
+function DefaultCharacter:init(x, y, image, health, collesionX, collesionY, collesionSizeX, collisionSizeY, projectileSpeed)
     self:moveTo(x, y)
     self:setImage(image)
-    --self:setCollideRect(0, 0, self:getSize())
+    self:setCollideRect(collesionX, collesionY, collesionSizeX or image:getWidth(), collisionSizeY or image:getHeight())
     self.health = health
-    self.projectileSpeed = 1
+    self.projectileSpeed = projectileSpeed
 end
 
 function DefaultCharacter:update()
@@ -20,4 +20,5 @@ function DefaultCharacter:update()
     x = math.max(width / 2, math.min(pd.display.getWidth() - width / 2, x))
     y = math.max(height / 2, math.min(pd.display.getHeight() - height / 2, y))
     self:moveTo(x, y)
+
 end

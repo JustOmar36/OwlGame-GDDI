@@ -1,22 +1,21 @@
 import "CoreLibs/sprites"
 import "CoreLibs/graphics"
 import "CoreLibs/animation"
+import "CoreLibs/timer"
 
 import "Characters/defaultCharacter"
 import "Characters/player"
+import "Characters/owlBear"
 
 --Initializing Playdate SDK
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
 -- Starting Animation
-local playerStart1 = gfx.image.new("images/V-Peace1.png")
-local playerStart2 = gfx.image.new("images/V-Peace2.png")
+local playerStart1 = gfx.image.new("images/V-Peace1.png"):scaledImage(7)
+local playerStart2 = gfx.image.new("images/V-Peace2.png"):scaledImage(7)
 
-local playerStart1Scaled = playerStart1 and playerStart1:scaledImage(7) or nil
-local playerStart2Scaled = playerStart2 and playerStart2:scaledImage(7) or nil
-
-local playerAnimation = gfx.animation.loop.new(1500, {playerStart1Scaled, playerStart2Scaled})
+local playerAnimation = gfx.animation.loop.new(1500, {playerStart1, playerStart2})
 
 
 
@@ -24,18 +23,56 @@ local playerAnimation = gfx.animation.loop.new(1500, {playerStart1Scaled, player
 local gameState = "stopped"
 
 --Player Setup
-local playerInstance = Player(50, 200, 100)
+local playerXlocation = 30
+local playerYlocation = 210
+local playerHealth = 100
+local playerCollisionXLocation = 20
+local playerCollisionYLocation = 28
+local playerCollisionXSize = 20
+local playerCollisionYSize = 20
+local playerProjectileSpeed = 5
+local playerAttackFrequencyTimer = 2000
+local playerInstance
+
+--Enemies
+local owlBearXlocation = 400
+local owlBearYlocation = 210
+local owlBearHealth = 10
+local owlCollesionX = 0
+local owlCollesionY = 0
+local owlCollisionSizeX = 65
+local owlCollisionSizeY = 65
+local owlSpeed = 1
+local owlBearDamage = 100
+local owlBearInstance
+
+local function spawnOwlBear()
+    owlBearInstance = OwlBear(owlBearXlocation, owlBearYlocation, owlBearHealth, owlCollesionX, owlCollesionY, owlCollisionSizeX, owlCollisionSizeY, owlSpeed, owlBearDamage)
+    owlBearInstance:add()
+end
 
 --Play Game
 local function playGame()
     gameState = "playing"
+    playerInstance = Player(playerXlocation, playerYlocation, playerHealth, playerCollisionXLocation, playerCollisionYLocation, playerCollisionXSize, playerCollisionYSize, playerProjectileSpeed, playerAttackFrequencyTimer)
     playerInstance:add()
-    gfx.sprite.update()
+
+    
+
+end
+
+local function endGame()
+    gameState = "stopped"
+    playerInstance:remove()
+    owlBearInstance:remove()
+    playerInstance.handSprite:remove()
+    
+    gfx.clear()
 end
 
 --Update
 function pd.update()
-    gfx.clear()
+    
     gfx.sprite.update()
     if gameState == "stopped" then
         playerAnimation:draw(177, 17)
@@ -43,7 +80,16 @@ function pd.update()
         gfx.drawText("Press A to Start", 25, 50)
         if pd.buttonJustPressed(pd.kButtonA) then
             playGame()
+            gfx.clear()
+        end
+    elseif gameState == "playing" then
 
+        --spawn in owlbear every 3 seconds
+        pd.timer.new(3000, spawnOwlBear)
+
+        if playerInstance:getHealth() <= 0 then
+            endGame()
         end
     end
+    pd.timer.updateTimers()
 end 
