@@ -46,10 +46,28 @@ local owlSpeed = 1
 local owlBearDamage = 100
 local owlBearInstance
 local spawnOwlBearTimer
+local owlBearArray = {}
 
 local function spawnOwlBear()
     owlBearInstance = OwlBear(owlBearXlocation, owlBearYlocation, owlBearHealth, owlCollesionX, owlCollesionY, owlCollisionSizeX, owlCollisionSizeY, owlSpeed, owlBearDamage)
     owlBearInstance:add()
+
+    table.insert(owlBearArray, owlBearInstance)
+end
+
+--Remove Dead OwlBear
+local function clearOwlBearArray()
+    if(owlBearArray) and (#owlBearArray >= 1) then
+        print(owlBearArray, " Before")
+        for i = #owlBearArray, 1, -1 do 
+            local ob = owlBearArray[i]
+            if ob.health <= 0 then
+                ob:remove() 
+                table.remove(owlBearArray, i)
+            end
+        end
+        print(owlBearArray, " After")
+    end
 end
 
 --Play Game
@@ -59,16 +77,25 @@ local function playGame()
     playerInstance:add()
 
     -- Then repeat every 3 seconds
-    spawnOwlBearTimer = pd.timer.keyRepeatTimerWithDelay(1000, 1000, function() spawnOwlBear() end)
+    spawnOwlBearTimer = pd.timer.keyRepeatTimerWithDelay(50000, 50000, function() spawnOwlBear() end)
 
 end
 
+--Gamer Over
 local function endGame()
     gameState = "stopped"
     playerInstance:remove()
     owlBearInstance:remove()
     playerInstance.handSprite:remove()
     spawnOwlBearTimer:remove()
+
+    --Clear OwlBear Array
+    --Reset OwlBear Array
+    for i = #owlBearArray, 1, -1 do
+        owlBearArray[i]:remove()
+    end
+    owlBearArray = {}
+
     gfx.clear()
 end
 
@@ -85,6 +112,11 @@ function pd.update()
             gfx.clear()
         end
     elseif gameState == "playing" then
+
+        --Check if OwlBears are dead in the array and remove them
+        clearOwlBearArray()
+
+        --Game Over
         if playerInstance:getHealth() <= 0 then
             endGame()
         end
