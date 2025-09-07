@@ -25,6 +25,10 @@ function OwlBear:collideWith(target)
     
 end
 
+function OwlBear:collisionResponse(other)
+    return "overlap" -- allows overlapping without pushing back
+end
+
 
 function OwlBear:update()
     OwlBear.super.update(self)

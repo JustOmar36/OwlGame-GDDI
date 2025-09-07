@@ -45,6 +45,7 @@ local owlCollisionSizeY = 65
 local owlSpeed = 1
 local owlBearDamage = 100
 local owlBearInstance
+local spawnOwlBearTimer
 
 local function spawnOwlBear()
     owlBearInstance = OwlBear(owlBearXlocation, owlBearYlocation, owlBearHealth, owlCollesionX, owlCollesionY, owlCollisionSizeX, owlCollisionSizeY, owlSpeed, owlBearDamage)
@@ -57,7 +58,8 @@ local function playGame()
     playerInstance = Player(playerXlocation, playerYlocation, playerHealth, playerCollisionXLocation, playerCollisionYLocation, playerCollisionXSize, playerCollisionYSize, playerProjectileSpeed, playerAttackFrequencyTimer)
     playerInstance:add()
 
-    
+    -- Then repeat every 3 seconds
+    spawnOwlBearTimer = pd.timer.keyRepeatTimerWithDelay(1000, 1000, function() spawnOwlBear() end)
 
 end
 
@@ -66,7 +68,7 @@ local function endGame()
     playerInstance:remove()
     owlBearInstance:remove()
     playerInstance.handSprite:remove()
-    
+    spawnOwlBearTimer:remove()
     gfx.clear()
 end
 
@@ -83,13 +85,10 @@ function pd.update()
             gfx.clear()
         end
     elseif gameState == "playing" then
-
-        --spawn in owlbear every 3 seconds
-        pd.timer.new(3000, spawnOwlBear)
-
         if playerInstance:getHealth() <= 0 then
             endGame()
         end
     end
+
     pd.timer.updateTimers()
 end 
