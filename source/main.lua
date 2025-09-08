@@ -34,7 +34,7 @@ local playerProjectileSpeed = 5
 local playerAttackFrequencyTimer = 2000
 local playerInstance
 
---Enemies
+--Enemies: OwlBear
 local owlBearXlocation = 400
 local owlBearYlocation = 210
 local owlBearHealth = 10
@@ -48,6 +48,7 @@ local owlBearInstance
 local spawnOwlBearTimer
 local owlBearArray = {}
 
+--Spawn OwlBears and add to OwlBearArray
 local function spawnOwlBear()
     owlBearInstance = OwlBear(owlBearXlocation, owlBearYlocation, owlBearHealth, owlCollesionX, owlCollesionY, owlCollisionSizeX, owlCollisionSizeY, owlSpeed, owlBearDamage)
     owlBearInstance:add()
@@ -56,9 +57,8 @@ local function spawnOwlBear()
 end
 
 --Remove Dead OwlBear
-local function clearOwlBearArray()
+local function clearDeadOwlBearArray()
     if(owlBearArray) and (#owlBearArray >= 1) then
-        print(owlBearArray, " Before")
         for i = #owlBearArray, 1, -1 do 
             local ob = owlBearArray[i]
             if ob.health <= 0 then
@@ -66,9 +66,21 @@ local function clearOwlBearArray()
                 table.remove(owlBearArray, i)
             end
         end
-        print(owlBearArray, " After")
     end
 end
+
+--Clear OwlBearArray
+--Reset OwlBear Array
+local function ClearOwlBearArray()
+    if(owlBearArray) then
+        for i = #owlBearArray, 1, -1 do 
+            owlBearArray[i]:remove()
+        end
+        owlBearArray = {}
+    end
+end
+
+
 
 --Play Game
 local function playGame()
@@ -90,11 +102,7 @@ local function endGame()
     spawnOwlBearTimer:remove()
 
     --Clear OwlBear Array
-    --Reset OwlBear Array
-    for i = #owlBearArray, 1, -1 do
-        owlBearArray[i]:remove()
-    end
-    owlBearArray = {}
+    ClearOwlBearArray()
 
     gfx.clear()
 end
@@ -107,6 +115,8 @@ function pd.update()
         playerAnimation:draw(177, 17)
         gfx.drawText("Owl Invasion", 40, 25)
         gfx.drawText("Press A to Start", 25, 50)
+
+        --Start Game
         if pd.buttonJustPressed(pd.kButtonA) then
             playGame()
             gfx.clear()
@@ -114,7 +124,7 @@ function pd.update()
     elseif gameState == "playing" then
 
         --Check if OwlBears are dead in the array and remove them
-        clearOwlBearArray()
+        clearDeadOwlBearArray()
 
         --Game Over
         if playerInstance:getHealth() <= 0 then
