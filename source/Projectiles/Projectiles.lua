@@ -23,10 +23,12 @@ end
 
 function Projectiles:collideWith(target)
     -- Only allow projectiles to collide with the player
-    if not (target and target.className and target.className == "Player") then
+    if (target and target.className and target.tag == "Enemy") then
+        print("Projectile hit " .. tostring(target.tag))
         if target.health then
             target.health = target.health - self.damage
         end
+        
         self:remove()
     end    
 end
@@ -63,7 +65,6 @@ function Projectiles:update()
     if numberOfCollisions > 0 then
         for i = 1, numberOfCollisions do
                 local collision = collisions[i]
-                print("Projectile hit " .. tostring(collision.other.className))
                 self:collideWith(collision.other)
                 
         end

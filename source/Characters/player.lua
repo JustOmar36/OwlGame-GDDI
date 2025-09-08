@@ -8,13 +8,17 @@ local offset <const> = 10
 
 class("Player").extends("DefaultCharacter")
 
-function Player:init(x, y, health, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed, attackFrquencyTimer, playerEnergyTimer)
+function Player:init(x, y, health, collesionX, collesionY, 
+    collisionSizeX, collisionSizeY, projectileSpeed, projectileDamage, 
+    attackFrquencyTimer, playerEnergyTimer, maxHealth)
+
     self.playerImage = gfx.image.new("./images/V-Char-sideways.png"):scaledImage(2)
     self.handImage = gfx.image.new("./images/hand.png")
     self.handSprite = gfx.sprite.new(self.handImage)
 
     self.attackFrequencyTimer = attackFrquencyTimer
     self.projectileSpeed = projectileSpeed
+    self.projectileDamage = projectileDamage
     self.playerEnergyTimer = playerEnergyTimer
 
     self.handSprite:setZIndex(1)
@@ -22,20 +26,75 @@ function Player:init(x, y, health, collesionX, collesionY, collisionSizeX, colli
     --player energy
     self.energy = 0
 
+    --Player Max Health
+    self.maxHealth = maxHealth
+
+    --player tag
+    self.tag = "Player"
+
+    --projectile damage
+    self.projectileDamage = 5
+
+    --currentSpecialAbility
+    self.currentSpecialAbility = ""
+
     --timers
     self.lastShotTime = pd.getCurrentTimeMilliseconds()
     self.energyTime = pd.getCurrentTimeMilliseconds()
 
-    Player.super.init(self, x, y, self.playerImage, health, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed)
+    Player.super.init(self, x, y, self.playerImage, health, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed, projectileDamage, self.tag)
 end
 
+--Max Health Getter and Setter
+function Player:getMaxHealth()
+    return self.maxHealth
+end
+
+function Player:setMaxHealth(maxHealth)
+    self.maxHealth = maxHealth
+end
+
+--Health Getter and Setter
+function Player:getHealth()
+    return self.health
+end
+
+function Player:setHealth(health)
+    self.health = health
+end
+
+--Energy Getter and Setter
+function Player:getEnergy()
+    return self.energy
+end
+
+function Player:setEnergy(energy)
+    self.energy += energy
+end
+
+--Special Ability Getter and Setter
+function Player:getSpecialAbility()
+    return self.currentSpecialAbility
+end
+
+function Player:setSepecialAbility(ability)
+    self.currentSpecialAbility = ability
+end
+
+--Heal Player
+function Player:healPlayer()
+    self.health = self.maxHealth
+end
+
+--Shoot projectile from current hand location
 function Player:fireProjectile(handX, handY)
     local projectileImage = gfx.image.new("./images/Fireball.png"):scaledImage(0.7)
-    local projectile = Projectiles(projectileImage, 5, self.projectileSpeed, 10, 10)
+    local projectile = Projectiles(projectileImage, self.projectileDamage, self.projectileSpeed, 10, 10)
     projectile:fire(handX, handY)
 
 end
 
+--Controls for hand rotation
 function Player:updateHand()
     -- Rotate around the far left edge of the hand sprite
     local baseX, baseY = self.handSprite.x, self.handSprite.y
@@ -56,14 +115,7 @@ function Player:updateHand()
     
 end
 
-function Player:getHealth()
-    return self.health
-end
-
-function Player:getEnergy()
-    return self.energy
-end
-
+--Spawns in the handsprite connected to player location (offset based on character size)
 function Player:spawnHand(x, y)
     if self.handSprite then
         self.handSprite:moveTo(x - 5 , y + 8) -- Position the hand
@@ -71,8 +123,10 @@ function Player:spawnHand(x, y)
     end
 end
 
+
 function Player:update()
 
+    --timer as the game runs
     local timeNow = playdate.getCurrentTimeMilliseconds()
 
     -- Keep player within screen bounds
@@ -88,12 +142,15 @@ function Player:update()
         self.lastShotTime = timeNow
     end
 
+    --Increase energy on a timer
     if timeNow - self.energyTime >= self.playerEnergyTimer then
-        self.energy += 1
+        self:setEnergy(1)
         self.energyTime = timeNow
     end
 
+    --remove player on death
     if self.health <= 0 then
+        self.remove()
         self.handSprite:remove()
     end
 

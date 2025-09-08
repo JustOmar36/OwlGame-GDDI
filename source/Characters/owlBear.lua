@@ -10,19 +10,31 @@ function OwlBear:init(x, y, health, collesionX, collesionY, collisionSizeX, coll
     self.playerImage = gfx.image.new("./images/OwlBear.png"):scaledImage(2)
     self.speed = speed
     self.damage = damage
-    OwlBear.super.init(self, x, y, self.playerImage, health, collesionX, collesionY, collisionSizeX, collisionSizeY)
+
+    --enemy tag
+    self.tag = "Enemy"
+
+    OwlBear.super.init(self, x, y, self.playerImage, health, collesionX, collesionY, collisionSizeX, collisionSizeY, 0, 0, self.tag)
 end
 
 function OwlBear:collideWith(target)
     -- Only allow projectiles to collide with the player
-    if (target and target.className and target.className == "Player") then
+    if (target and target.className and target.tag == "Player") then
         self:moveTo(self.x + 10, self.y) -- Knockback effects
-        print("OwlBear hit Player")
+        print("OwlBear hit " .. target.tag)
         if target.health then
             target.health = target.health - self.damage
         end
     end
     
+end
+
+function OwlBear:getXLocation()
+    return self.x
+end
+
+function OwlBear:setXLocation(x)
+    self.x = x
 end
 
 function OwlBear:collisionResponse(other)
@@ -48,7 +60,6 @@ function OwlBear:update()
     if self.health <= 0 then
         self:remove()
     end
-
 
 end
 
