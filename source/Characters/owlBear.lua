@@ -35,7 +35,6 @@ function OwlBear:update()
 
     -- Move left across the screen
     local x, y = self:getPosition()
-    self:moveWithCollisions(x - self.speed, y)
 
     local actualX, actualY, collisions, numberOfCollisions = self:moveWithCollisions(x - self.speed, y)
 

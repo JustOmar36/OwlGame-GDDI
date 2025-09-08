@@ -11,27 +11,54 @@ import "Characters/owlBear"
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
+--Timers
+local time <const> = 5000
+local timeOffset = 1
+
 -- Starting Animation
 local playerStart1 = gfx.image.new("images/V-Peace1.png"):scaledImage(7)
 local playerStart2 = gfx.image.new("images/V-Peace2.png"):scaledImage(7)
 
 local playerAnimation = gfx.animation.loop.new(1500, {playerStart1, playerStart2})
 
+--Background
+local function drawBackground()
 
+    -- We want an environment displayed behind our sprite.
+    -- There are generally two ways to do this:
+    -- 1) Use setBackgroundDrawingCallback() to draw a background image. (This is what we're doing below.)
+    -- 2) Use a tilemap, assign it to a sprite with sprite:setTilemap(tilemap),
+    --       and call :setZIndex() with some low number so the background stays behind
+    --       your other sprites.
+
+    local backgroundImage = gfx.image.new( "images/background.png" )
+
+    assert( backgroundImage )
+
+    gfx.sprite.setBackgroundDrawingCallback(
+        function( x, y, width, height )
+            -- x,y,width,height is the updated area in sprite-local coordinates
+            -- The clip rect is already set to this area, so we don't need to set it ourselves
+            backgroundImage:draw( 0, 0 )
+            
+        end
+    )
+
+end
 
 --Game State
 local gameState = "stopped"
 
 --Player Setup
 local playerXlocation = 30
-local playerYlocation = 210
+local playerYlocation = 200
 local playerHealth = 100
 local playerCollisionXLocation = 20
 local playerCollisionYLocation = 28
 local playerCollisionXSize = 20
 local playerCollisionYSize = 20
 local playerProjectileSpeed = 5
-local playerAttackFrequencyTimer = 2000
+local playerAttackFrequencyTimer = 3000
 local playerInstance
 
 --Enemies: OwlBear
@@ -52,7 +79,6 @@ local owlBearArray = {}
 local function spawnOwlBear()
     owlBearInstance = OwlBear(owlBearXlocation, owlBearYlocation, owlBearHealth, owlCollesionX, owlCollesionY, owlCollisionSizeX, owlCollisionSizeY, owlSpeed, owlBearDamage)
     owlBearInstance:add()
-
     table.insert(owlBearArray, owlBearInstance)
 end
 
@@ -80,17 +106,15 @@ local function ClearOwlBearArray()
     end
 end
 
-
-
 --Play Game
 local function playGame()
     gameState = "playing"
+    drawBackground()
     playerInstance = Player(playerXlocation, playerYlocation, playerHealth, playerCollisionXLocation, playerCollisionYLocation, playerCollisionXSize, playerCollisionYSize, playerProjectileSpeed, playerAttackFrequencyTimer)
     playerInstance:add()
 
     -- Then repeat every 3 seconds
-    spawnOwlBearTimer = pd.timer.keyRepeatTimerWithDelay(50000, 50000, function() spawnOwlBear() end)
-
+    spawnOwlBearTimer = pd.timer.keyRepeatTimerWithDelay(time + (timeOffset * time), time + (timeOffset * time), function() spawnOwlBear() end)
 end
 
 --Gamer Over
@@ -103,13 +127,11 @@ local function endGame()
 
     --Clear OwlBear Array
     ClearOwlBearArray()
-
     gfx.clear()
 end
 
 --Update
 function pd.update()
-    
     gfx.sprite.update()
     if gameState == "stopped" then
         playerAnimation:draw(177, 17)
@@ -122,7 +144,6 @@ function pd.update()
             gfx.clear()
         end
     elseif gameState == "playing" then
-
         --Check if OwlBears are dead in the array and remove them
         clearDeadOwlBearArray()
 

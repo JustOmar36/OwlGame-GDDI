@@ -23,8 +23,8 @@ function Player:init(x, y, health, collesionX, collesionY, collisionSizeX, colli
 end
 
 function Player:fireProjectile(handX, handY)
-    local projectileImage = gfx.image.new("./images/Fireball.png"):scaledImage(0.4)
-    local projectile = Projectiles(projectileImage, 5, self.projectileSpeed, 5, 5)
+    local projectileImage = gfx.image.new("./images/Fireball.png"):scaledImage(0.7)
+    local projectile = Projectiles(projectileImage, 5, self.projectileSpeed, 10, 10)
     projectile:fire(handX, handY)
 
 end

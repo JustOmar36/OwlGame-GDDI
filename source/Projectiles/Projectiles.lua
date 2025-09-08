@@ -55,10 +55,7 @@ function Projectiles:collisionResponse(other)
 end
 
 function Projectiles:update()
-
     local x, y = self:getPosition()
-    -- self:moveTo(x + self.vx, y + self.vy)
-    
 
     --check for collisions with other sprites
     local actualX, actualY, collisions, numberOfCollisions = self:moveWithCollisions(x + self.vx, y + self.vy)
@@ -71,7 +68,6 @@ function Projectiles:update()
                 
         end
     end
-
 
     -- Remove projectile if it goes off-screen
     if x < 0 or x > pd.display.getWidth() or y < 0 or y > pd.display.getHeight() then
