@@ -8,16 +8,23 @@ local offset <const> = 10
 
 class("Player").extends("DefaultCharacter")
 
-function Player:init(x, y, health, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed, attackFrquencyTimer)
+function Player:init(x, y, health, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed, attackFrquencyTimer, playerEnergyTimer)
     self.playerImage = gfx.image.new("./images/V-Char-sideways.png"):scaledImage(2)
-
     self.handImage = gfx.image.new("./images/hand.png")
     self.handSprite = gfx.sprite.new(self.handImage)
+
     self.attackFrequencyTimer = attackFrquencyTimer
     self.projectileSpeed = projectileSpeed
+    self.playerEnergyTimer = playerEnergyTimer
 
     self.handSprite:setZIndex(1)
-    self.lastShotTime = playdate.getCurrentTimeMilliseconds()
+
+    --player energy
+    self.energy = 0
+
+    --timers
+    self.lastShotTime = pd.getCurrentTimeMilliseconds()
+    self.energyTime = pd.getCurrentTimeMilliseconds()
 
     Player.super.init(self, x, y, self.playerImage, health, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed)
 end
@@ -53,6 +60,10 @@ function Player:getHealth()
     return self.health
 end
 
+function Player:getEnergy()
+    return self.energy
+end
+
 function Player:spawnHand(x, y)
     if self.handSprite then
         self.handSprite:moveTo(x - 5 , y + 8) -- Position the hand
@@ -75,6 +86,11 @@ function Player:update()
     if timeNow - self.lastShotTime >= self.attackFrequencyTimer then
         self:fireProjectile(self.handSprite.x, self.handSprite.y)
         self.lastShotTime = timeNow
+    end
+
+    if timeNow - self.energyTime >= self.playerEnergyTimer then
+        self.energy += 1
+        self.energyTime = timeNow
     end
 
     if self.health <= 0 then

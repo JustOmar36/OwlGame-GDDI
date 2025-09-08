@@ -59,6 +59,7 @@ local playerCollisionXSize = 20
 local playerCollisionYSize = 20
 local playerProjectileSpeed = 5
 local playerAttackFrequencyTimer = 3000
+local energyTimer = 5000
 local playerInstance
 
 --Enemies: OwlBear
@@ -110,7 +111,7 @@ end
 local function playGame()
     gameState = "playing"
     drawBackground()
-    playerInstance = Player(playerXlocation, playerYlocation, playerHealth, playerCollisionXLocation, playerCollisionYLocation, playerCollisionXSize, playerCollisionYSize, playerProjectileSpeed, playerAttackFrequencyTimer)
+    playerInstance = Player(playerXlocation, playerYlocation, playerHealth, playerCollisionXLocation, playerCollisionYLocation, playerCollisionXSize, playerCollisionYSize, playerProjectileSpeed, playerAttackFrequencyTimer, energyTimer)
     playerInstance:add()
 
     -- Then repeat every 3 seconds
@@ -146,6 +147,8 @@ function pd.update()
     elseif gameState == "playing" then
         --Check if OwlBears are dead in the array and remove them
         clearDeadOwlBearArray()
+
+        gfx.drawText("Energy: " .. playerInstance:getEnergy(), 10, 5)
 
         --Game Over
         if playerInstance:getHealth() <= 0 then
