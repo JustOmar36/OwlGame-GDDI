@@ -52,16 +52,17 @@ local playerInfo = {
     playerAttackFrequencyTimer = 3000,
     energyTimer = 5000,
 }
-local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation, playerInfo.playerHealth, 
+local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation, playerInfo.playerHealth, playerInfo.playerMaxHealth, 
                                 playerInfo.playerCollisionXLocation, playerInfo.playerCollisionYLocation, playerInfo.playerCollisionXSize, 
                                 playerInfo.playerCollisionYSize, playerInfo.playerProjectileSpeed, playerInfo.playerProjectileDamage, playerInfo.playerAttackFrequencyTimer, 
-                                playerInfo.energyTimer, playerInfo.playerMaxHealth)
+                                playerInfo.energyTimer)
 
 --Enemies: OwlBear
 local owlBearInfo ={
     owlBearXlocation = 400,
     owlBearYlocation = 210,
     owlBearHealth = 10,
+    owlBearMaxHealth = 10,
     owlCollesionX = 0,
     owlCollesionY = 0,
     owlCollisionSizeX = 65,
@@ -92,7 +93,7 @@ local specialAbilties = {
 
 --Spawn OwlBears and add to OwlBearArray
 local function spawnOwlBear()
-    local owlBearInstance = OwlBear(owlBearInfo.owlBearXlocation, owlBearInfo.owlBearYlocation, owlBearInfo.owlBearHealth, owlBearInfo.owlCollesionX, owlBearInfo.owlCollesionY, owlBearInfo.owlCollisionSizeX, owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
+    local owlBearInstance = OwlBear(owlBearInfo.owlBearXlocation, owlBearInfo.owlBearYlocation, owlBearInfo.owlBearHealth, owlBearArray.owlBearMaxHealth, owlBearInfo.owlCollesionX, owlBearInfo.owlCollesionY, owlBearInfo.owlCollisionSizeX, owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
     owlBearInstance:add()
     table.insert(owlBearArray, owlBearInstance)
 end
@@ -196,8 +197,6 @@ function pd.update()
         --Check if OwlBears are dead in the array and remove them
         clearDeadOwlBearArray()
 
-        
-
         if pd.buttonJustPressed(pd.kButtonB) then
             if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end 
         end
@@ -208,7 +207,6 @@ function pd.update()
         if playerInstance:getHealth() <= 0 then
             endGame()
         end
-
         portalSprite:setImage(portalAnimation:image())
     end
 

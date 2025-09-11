@@ -6,8 +6,10 @@ local gfx <const> = pd.graphics
 
 class("OwlBear").extends("DefaultCharacter")
 
-function OwlBear:init(x, y, health, collesionX, collesionY, collisionSizeX, collisionSizeY, speed, damage)
+function OwlBear:init(x, y, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, speed, damage)
     self.playerImage = gfx.image.new("./images/OwlBear.png"):scaledImage(2)
+    self.health = health
+    self.maxHealth = maxHealth
     self.speed = speed
     self.damage = damage
     self:setZIndex(1)
@@ -15,7 +17,7 @@ function OwlBear:init(x, y, health, collesionX, collesionY, collisionSizeX, coll
     --enemy tag
     self.tag = "Enemy"
 
-    OwlBear.super.init(self, x, y, self.playerImage, health, collesionX, collesionY, collisionSizeX, collisionSizeY, 0, 0, self.tag)
+    OwlBear.super.init(self, x, y, self.playerImage, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, 0, 0, self.tag)
 end
 
 function OwlBear:collideWith(target)

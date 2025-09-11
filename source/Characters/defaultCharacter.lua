@@ -4,18 +4,36 @@ local gfx <const> = pd.graphics
 
 class('DefaultCharacter').extends(gfx.sprite)
 
-function DefaultCharacter:init(x, y, image, health, collesionX, collesionY, collesionSizeX, collisionSizeY, projectileSpeed, projectileDamage, tag)
+function DefaultCharacter:init(x, y, image, health, maxHealth, collesionX, collesionY, collesionSizeX, collisionSizeY, projectileSpeed, projectileDamage, tag)
     self:moveTo(x, y)
     self:setImage(image)
     self:setCollideRect(collesionX, collesionY, collesionSizeX, collisionSizeY)
     self.health = health
+    self.maxHealth = maxHealth
     self.projectileSpeed = projectileSpeed
     self.projectileDamage = projectileDamage
     self.tag = tag
 end
 
---Projectile Getters and Setters
+--Max Health Getter and Setter
+function DefaultCharacter:getMaxHealth()
+    return self.maxHealth
+end
 
+function DefaultCharacter:setMaxHealth(maxHealth)
+    self.maxHealth = maxHealth
+end
+
+--Health Getter and Setter
+function DefaultCharacter:getHealth()
+    return self.health
+end
+
+function DefaultCharacter:setHealth(health)
+    self.health = health
+end
+
+--Projectile Getters and Setters
 function DefaultCharacter:setProjectileSpeed(speed)
     self.projectileSpeed = speed
 end

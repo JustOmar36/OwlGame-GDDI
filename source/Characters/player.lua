@@ -8,9 +8,9 @@ local offset <const> = 10
 
 class("Player").extends("DefaultCharacter")
 
-function Player:init(x, y, health, collesionX, collesionY, 
+function Player:init(x, y, health, maxHealth, collesionX, collesionY, 
     collisionSizeX, collisionSizeY, projectileSpeed, projectileDamage, 
-    attackFrquencyTimer, playerEnergyTimer, maxHealth)
+    attackFrquencyTimer, playerEnergyTimer)
 
     self.playerImage = gfx.image.new("./images/V-Char-sideways.png"):scaledImage(2)
     self.handImage = gfx.image.new("./images/hand.png")
@@ -42,25 +42,7 @@ function Player:init(x, y, health, collesionX, collesionY,
     self.lastShotTime = pd.getCurrentTimeMilliseconds()
     self.energyTime = pd.getCurrentTimeMilliseconds()
 
-    Player.super.init(self, x, y, self.playerImage, health, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed, projectileDamage, self.tag)
-end
-
---Max Health Getter and Setter
-function Player:getMaxHealth()
-    return self.maxHealth
-end
-
-function Player:setMaxHealth(maxHealth)
-    self.maxHealth = maxHealth
-end
-
---Health Getter and Setter
-function Player:getHealth()
-    return self.health
-end
-
-function Player:setHealth(health)
-    self.health = health
+    Player.super.init(self, x, y, self.playerImage, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed, projectileDamage, self.tag)
 end
 
 --Energy Getter and Setter
@@ -83,13 +65,15 @@ end
 
 --Heal Player
 function Player:healPlayer()
-    self.health = self.maxHealth
+    self.health = self:getMaxHealth()
 end
+
+
 
 --Shoot projectile from current hand location
 function Player:fireProjectile(handX, handY)
     local projectileImage = gfx.image.new("./images/Fireball.png"):scaledImage(0.7)
-    local projectile = Projectiles(projectileImage, self.projectileDamage, self.projectileSpeed, 10, 10)
+    local projectile = Projectiles(projectileImage, self.projectileDamage, self.projectileSpeed, 10, 10, self:getHealth())
     projectile:fire(handX, handY)
 
 end
