@@ -10,6 +10,7 @@ function OwlBear:init(x, y, health, collesionX, collesionY, collisionSizeX, coll
     self.playerImage = gfx.image.new("./images/OwlBear.png"):scaledImage(2)
     self.speed = speed
     self.damage = damage
+    self:setZIndex(1)
 
     --enemy tag
     self.tag = "Enemy"

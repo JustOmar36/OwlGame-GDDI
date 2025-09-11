@@ -13,15 +13,26 @@ local pd <const> = playdate
 local gfx <const> = pd.graphics
 
 --Timers
-local time = 10000
+local time = 5000
 
 --Background
 local backgroundImage = gfx.image.new( "images/background.png" )
 
--- Starting Animation
-local playerStart1 = gfx.image.new("images/V-Peace1.png"):scaledImage(7)
-local playerStart2 = gfx.image.new("images/V-Peace2.png"):scaledImage(7)
+-- Player Starting Animation
+local playerStart1 <const> = gfx.image.new("images/V-Peace1.png"):scaledImage(7)
+local playerStart2 <const> = gfx.image.new("images/V-Peace2.png"):scaledImage(7)
 local playerAnimation = gfx.animation.loop.new(1500, {playerStart1, playerStart2})
+
+-- Portal Animation
+local frame1 <const> = gfx.image.new("images/portal animation/Portal1.png"):scaledImage(3)
+local frame2 <const> = gfx.image.new("images/portal animation/Portal2.png"):scaledImage(3)
+local frame3 <const> = gfx.image.new("images/portal animation/Portal3.png"):scaledImage(3)
+local frame4 <const> = gfx.image.new("images/portal animation/Portal4.png"):scaledImage(3)
+local portalAnimation = gfx.animation.loop.new(1000, {frame1, frame2, frame3, frame4})
+local portalSprite = gfx.sprite.new()
+portalSprite:setImage(portalAnimation:image())
+portalSprite:moveTo(350, 110)
+portalSprite:setZIndex(0) -- pick a zIndex relative to other game objects
 
 --Game State
 local gameState = "stopped"
@@ -41,8 +52,10 @@ local playerInfo = {
     playerAttackFrequencyTimer = 3000,
     energyTimer = 5000,
 }
-
-local playerInstance
+local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation, playerInfo.playerHealth, 
+                                playerInfo.playerCollisionXLocation, playerInfo.playerCollisionYLocation, playerInfo.playerCollisionXSize, 
+                                playerInfo.playerCollisionYSize, playerInfo.playerProjectileSpeed, playerInfo.playerProjectileDamage, playerInfo.playerAttackFrequencyTimer, 
+                                playerInfo.energyTimer, playerInfo.playerMaxHealth)
 
 --Enemies: OwlBear
 local owlBearInfo ={
@@ -56,7 +69,6 @@ local owlBearInfo ={
     owlSpeed = 1,
     owlBearDamage = 1,
 }
-
 local spawnOwlBearTimer
 local owlBearArray = {}
 
@@ -77,7 +89,6 @@ local scooterInfo = {
 local specialAbilties = {
     scooter = 2,
 }
-
 
 --Spawn OwlBears and add to OwlBearArray
 local function spawnOwlBear()
@@ -111,6 +122,7 @@ end
 
 --Background Draw
 local function drawBackground()
+    
     assert( backgroundImage )
     gfx.sprite.setBackgroundDrawingCallback(
         function( x, y, width, height )
@@ -142,12 +154,9 @@ end
 local function playGame()
     gameState = "playing"
     drawBackground()
-    playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation, playerInfo.playerHealth, 
-                                playerInfo.playerCollisionXLocation, playerInfo.playerCollisionYLocation, playerInfo.playerCollisionXSize, 
-                                playerInfo.playerCollisionYSize, playerInfo.playerProjectileSpeed, playerInfo.playerProjectileDamage, playerInfo.playerAttackFrequencyTimer, 
-                                playerInfo.energyTimer, playerInfo.playerMaxHealth)
     playerInstance:add()
     playerInstance:setSepecialAbility("scooter")
+    portalSprite:add()
 
     print(tostring(playerInstance:getSpecialAbility()))
 
@@ -180,15 +189,17 @@ function pd.update()
 
         --Start Game
         if pd.buttonJustPressed(pd.kButtonA) then
-            playGame()
             gfx.clear()
+            playGame()
         end
     elseif gameState == "playing" then
         --Check if OwlBears are dead in the array and remove them
         clearDeadOwlBearArray()
+
+        
+
         if pd.buttonJustPressed(pd.kButtonB) then
-            if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end
-            
+            if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end 
         end
         gfx.drawText("Health: " .. playerInstance:getHealth() .. "/" .. playerInstance:getMaxHealth(), 10, 5)
         gfx.drawText("Energy: " .. playerInstance:getEnergy(), 150, 5)
@@ -197,6 +208,8 @@ function pd.update()
         if playerInstance:getHealth() <= 0 then
             endGame()
         end
+
+        portalSprite:setImage(portalAnimation:image())
     end
 
     pd.timer.updateTimers()
