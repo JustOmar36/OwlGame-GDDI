@@ -344,9 +344,6 @@ function pd.update()
         if playdate.buttonJustPressed(playdate.kButtonB) then
             endGame()
         end
-
     end
-
-
     pd.timer.updateTimers()
 end
