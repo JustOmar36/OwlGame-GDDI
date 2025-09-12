@@ -19,7 +19,7 @@ local spawnTimer
 --Wave Management
 local currentWaveArray = {}
 local initNumEnemies = 4
-local waveNum = 20
+local waveNum = 0
 --local enemyArrayLength
 
 --Background
@@ -41,8 +41,7 @@ portalSprite:setImage(portalAnimation:image())
 portalSprite:moveTo(350, 110)
 portalSprite:setZIndex(0) -- pick a zIndex relative to other game objects
 
---TO DO IMPLEMENT FLYING FUCKS
---TO DO CHANGE START MENU TO INCLUDE INSTRUCTIONS
+--TO DO : IMPLEMENT FLYING MONSTERS
 
 --Game State
 local gameState = "stopped"
@@ -60,7 +59,7 @@ local playerInfo = {
     playerProjectileSpeed = 5,
     playerProjectileDamage = 10,
     playerAttackFrequencyTimer = 3000,
-    energyTimer = 10000,
+    energyTimer = 20000,
 }
 local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation, playerInfo.playerHealth, playerInfo.playerMaxHealth, 
                                 playerInfo.playerCollisionXLocation, playerInfo.playerCollisionYLocation, playerInfo.playerCollisionXSize, 
@@ -129,7 +128,7 @@ end
 
 --Clear OwlBearArray & Reset OwlBear Array
 local function ClearOwlBearArray(enemyArray)
-    if(enemyArray) and (#enemyArray >= 1) then
+    if(enemyArray)then
         for i = #enemyArray, 1, -1 do 
             enemyArray[i]:remove()
             table.remove(enemyArray, i)
@@ -141,6 +140,7 @@ local function startNextWave()
     
     currentWaveArray = createOwlBears(initNumEnemies)
     --enemyArrayLength = #currentWaveArray
+
     -- Kill old timer if it exists
     if spawnTimer then
         spawnTimer:remove()
@@ -160,14 +160,14 @@ local function startNextWave()
                 spawnTimer:remove()
                 spawnTimer = nil
                 waveNum += 1
-                initNumEnemies += 2
+                initNumEnemies += 1
                 startNextWave()
                 owlBearInfo.owlSpeed += 0.1
                 owlBearInfo.owlBearDamage += 0.5
-                owlBearInfo.owlBearMaxHealth += 1
+                owlBearInfo.owlBearMaxHealth += 0.5
                 owlBearInfo.owlBearHealth = owlBearInfo.owlBearMaxHealth
                 playerInstance:setProjectileSpeed(playerInstance:getProjectSpeed() + 0.2)
-                playerInstance:setProjectileDamage(playerInstance:getProjectileDamage() + 1)
+                playerInstance:setProjectileDamage(playerInstance:getProjectileDamage() + 0.5)
                 if not (playerInstance:getAttackFrequencyTimer() <= 1000) then
                     playerInstance:setAttackFrequencyTimer(playerInstance:getAttackFrequencyTimer() - 250)
                 end
@@ -176,12 +176,12 @@ local function startNextWave()
                     playerInstance:healPlayer()
                 end
 
-                if(waveNum == 21) then
+                if(waveNum == 15) then
                     gameState = "won"
                 end
 
                 if(time ~= 1) then 
-                    time -= time*0.001 
+                    time -= time*0.005 
                 end --Speed up game
             end)
         end
@@ -236,6 +236,9 @@ local function endGame()
     playerInstance.handSprite:remove()
     spawnTimer:remove()
     ClearOwlBearArray(currentWaveArray)
+    waveNum = 0
+    initNumEnemies = 4
+    currentWaveArray = {}
     --Remove background
     clearBackground()
     gfx.clear()
@@ -254,16 +257,18 @@ local function drawInstructions()
         "Turn the crank to aim your shots",
         "Shoot Owl Bears to stay alive",
         "Each wave grows faster and tougher",
-        "Press B to unleash Scooter Power:",
+        "Gain 10 extra health points every 5 waves",
+        "Press B to unleash Scooter Power", 
+        "(Requires 2 Energy):",
         "  - Deals heavy damage",
         "  - Knocks enemies back",
-        "Reach Wave 20 to Win!",
+        "Reach Wave 15 to Win!",
         "",
         "Press B again to return to Main Menu"
     }
 
     -- Center block of text vertically
-    local startY = 60
+    local startY = 35
     local lineSpacing = 18
     for i, line in ipairs(instructions) do
         gfx.drawText(line, 30, startY + (i - 1) * lineSpacing)
@@ -288,7 +293,6 @@ local function drawWinScreen()
     gfx.drawTextAligned("But new challenges await.", 200, 140, kTextAlignment.center)
 
     -- Instructions
-    gfx.drawTextAligned("Press A to play again", 200, 190, kTextAlignment.center)
     gfx.drawTextAligned("Press B to return to Main Menu", 200, 210, kTextAlignment.center)
 
 end
@@ -336,19 +340,9 @@ function pd.update()
         drawInstructions()
     
     elseif gameState == "won" then
-        playerInstance:remove()
-        playerInstance.handSprite:remove()
-        spawnTimer:remove()
-        ClearOwlBearArray(currentWaveArray)
-        --Remove background
-        clearBackground()
-        gfx.clear()
-        
         drawWinScreen()
-        if playdate.buttonJustPressed(playdate.kButtonA) then
-            gameState = "playing" -- restart gameplay
-        elseif playdate.buttonJustPressed(playdate.kButtonB) then
-            gameState = "stopped" -- go back to main menu
+        if playdate.buttonJustPressed(playdate.kButtonB) then
+            endGame()
         end
 
     end
