@@ -58,6 +58,7 @@ function Projectiles:collisionResponse(other)
 end
 
 function Projectiles:update()
+
     local x, y = self:getPosition()
 
     --check for collisions with other sprites

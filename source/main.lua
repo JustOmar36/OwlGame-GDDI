@@ -13,7 +13,14 @@ local pd <const> = playdate
 local gfx <const> = pd.graphics
 
 --Timers
-local time = 5000
+local time = 3000
+local spawnTimer
+
+--Wave Management
+local currentWaveArray = {}
+local initNumEnemies = 4
+local waveNum = 20
+--local enemyArrayLength
 
 --Background
 local backgroundImage = gfx.image.new( "images/background.png" )
@@ -34,6 +41,9 @@ portalSprite:setImage(portalAnimation:image())
 portalSprite:moveTo(350, 110)
 portalSprite:setZIndex(0) -- pick a zIndex relative to other game objects
 
+--TO DO IMPLEMENT FLYING FUCKS
+--TO DO CHANGE START MENU TO INCLUDE INSTRUCTIONS
+
 --Game State
 local gameState = "stopped"
 
@@ -50,7 +60,7 @@ local playerInfo = {
     playerProjectileSpeed = 5,
     playerProjectileDamage = 10,
     playerAttackFrequencyTimer = 3000,
-    energyTimer = 5000,
+    energyTimer = 10000,
 }
 local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation, playerInfo.playerHealth, playerInfo.playerMaxHealth, 
                                 playerInfo.playerCollisionXLocation, playerInfo.playerCollisionYLocation, playerInfo.playerCollisionXSize, 
@@ -58,7 +68,7 @@ local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYloca
                                 playerInfo.energyTimer)
 
 --Enemies: OwlBear
-local owlBearInfo ={
+local owlBearInfo = {
     owlBearXlocation = 400,
     owlBearYlocation = 210,
     owlBearHealth = 10,
@@ -70,8 +80,7 @@ local owlBearInfo ={
     owlSpeed = 1,
     owlBearDamage = 1,
 }
-local spawnOwlBearTimer
-local owlBearArray = {}
+
 
 local scooterInfo = {
     scooterXLocation = 30, 
@@ -80,10 +89,10 @@ local scooterInfo = {
     scooterCollesionY = 0, 
     scooterCollesionSizeX = 65, 
     scooterCollisionSizeY = 65,
-    scooterDamage = 1,
-    scooterSpeed = 5,
+    scooterDamage = 5,
+    scooterSpeed = 10,
     scooterCost = 2,
-    scooterKnockBack = 5
+    scooterKnockBack = 25
 }
 
 --list of special abilties and their costs
@@ -92,33 +101,91 @@ local specialAbilties = {
 }
 
 --Spawn OwlBears and add to OwlBearArray
-local function spawnOwlBear()
-    local owlBearInstance = OwlBear(owlBearInfo.owlBearXlocation, owlBearInfo.owlBearYlocation, owlBearInfo.owlBearHealth, owlBearArray.owlBearMaxHealth, owlBearInfo.owlCollesionX, owlBearInfo.owlCollesionY, owlBearInfo.owlCollisionSizeX, owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
-    owlBearInstance:add()
-    table.insert(owlBearArray, owlBearInstance)
+local function createOwlBears(numOfEnemies)
+    local owlBearArray = {}
+    for i = 0, numOfEnemies-1 do
+        local owlBearInstance = OwlBear(owlBearInfo.owlBearXlocation, owlBearInfo.owlBearYlocation, 
+                                owlBearInfo.owlBearHealth, owlBearArray.owlBearMaxHealth, 
+                                owlBearInfo.owlCollesionX, owlBearInfo.owlCollesionY, owlBearInfo.owlCollisionSizeX, 
+                                owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
+        table.insert(owlBearArray, owlBearInstance)
+    end
+    
+    return owlBearArray
 end
 
 --Remove Dead OwlBear
-local function clearDeadOwlBearArray()
-    if(owlBearArray) and (#owlBearArray >= 1) then
-        for i = #owlBearArray, 1, -1 do 
-            local ob = owlBearArray[i]
-            if ob.health <= 0 then
-                ob:remove() 
-                table.remove(owlBearArray, i)
-            end
+-- local function clearDeadEnemyArray(enemyArray)
+--     if(enemyArray) and (#enemyArray >= 1) then
+--         for i = #enemyArray, 1, -1 do 
+--             local ob = enemyArray[i]
+--             if ob.health <= 0 then
+--                 ob:remove() 
+--                 table.remove(enemyArray, i)
+--             end
+--         end
+--     end
+-- end
+
+--Clear OwlBearArray & Reset OwlBear Array
+local function ClearOwlBearArray(enemyArray)
+    if(enemyArray) and (#enemyArray >= 1) then
+        for i = #enemyArray, 1, -1 do 
+            enemyArray[i]:remove()
+            table.remove(enemyArray, i)
         end
     end
 end
 
---Clear OwlBearArray & Reset OwlBear Array
-local function ClearOwlBearArray()
-    if(owlBearArray) then
-        for i = #owlBearArray, 1, -1 do 
-            owlBearArray[i]:remove()
-        end
-        owlBearArray = {}
+local function startNextWave()
+    
+    currentWaveArray = createOwlBears(initNumEnemies)
+    --enemyArrayLength = #currentWaveArray
+    -- Kill old timer if it exists
+    if spawnTimer then
+        spawnTimer:remove()
     end
+
+    spawnTimer = pd.timer.keyRepeatTimerWithDelay(time, time, function()
+        local enemy = table.remove(currentWaveArray, 1)
+        if enemy then
+            enemy:add()
+        else
+            spawnTimer:remove()
+            spawnTimer = nil
+            -- Wave is done → stop timer and auto-start next wave
+            spawnTimer = pd.timer.performAfterDelay(3000, function() 
+                currentWaveArray = {}
+                --enemyArrayLength = 0
+                spawnTimer:remove()
+                spawnTimer = nil
+                waveNum += 1
+                initNumEnemies += 2
+                startNextWave()
+                owlBearInfo.owlSpeed += 0.1
+                owlBearInfo.owlBearDamage += 0.5
+                owlBearInfo.owlBearMaxHealth += 1
+                owlBearInfo.owlBearHealth = owlBearInfo.owlBearMaxHealth
+                playerInstance:setProjectileSpeed(playerInstance:getProjectSpeed() + 0.2)
+                playerInstance:setProjectileDamage(playerInstance:getProjectileDamage() + 1)
+                if not (playerInstance:getAttackFrequencyTimer() <= 1000) then
+                    playerInstance:setAttackFrequencyTimer(playerInstance:getAttackFrequencyTimer() - 250)
+                end
+                if (waveNum % 5 == 0) then 
+                    playerInstance:setMaxHealth(playerInstance:getMaxHealth() + 10)
+                    playerInstance:healPlayer()
+                end
+
+                if(waveNum == 21) then
+                    gameState = "won"
+                end
+
+                if(time ~= 1) then 
+                    time -= time*0.001 
+                end --Speed up game
+            end)
+        end
+    end)
 end
 
 --Background Draw
@@ -158,11 +225,8 @@ local function playGame()
     playerInstance:add()
     playerInstance:setSepecialAbility("scooter")
     portalSprite:add()
-
     print(tostring(playerInstance:getSpecialAbility()))
-
-    -- Then repeat every 3 seconds
-    spawnOwlBearTimer = pd.timer.keyRepeatTimerWithDelay(time, time, function() spawnOwlBear() end)
+    startNextWave()
 end
 
 --Gamer Over
@@ -170,14 +234,63 @@ local function endGame()
     gameState = "stopped"
     playerInstance:remove()
     playerInstance.handSprite:remove()
-    spawnOwlBearTimer:remove()
-
+    spawnTimer:remove()
+    ClearOwlBearArray(currentWaveArray)
     --Remove background
     clearBackground()
-    
-    --Clear OwlBear Array
-    ClearOwlBearArray()
     gfx.clear()
+end
+
+local function drawInstructions()
+    gfx.clear(gfx.kColorWhite)
+    gfx.setFont(gfx.getSystemFont())
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+
+    -- Title
+    gfx.drawTextAligned("How to Play", 200, 20, kTextAlignment.center)
+
+    -- Instruction lines (reworded for clarity)
+    local instructions = {
+        "Turn the crank to aim your shots",
+        "Shoot Owl Bears to stay alive",
+        "Each wave grows faster and tougher",
+        "Press B to unleash Scooter Power:",
+        "  - Deals heavy damage",
+        "  - Knocks enemies back",
+        "Reach Wave 20 to Win!",
+        "",
+        "Press B again to return to Main Menu"
+    }
+
+    -- Center block of text vertically
+    local startY = 60
+    local lineSpacing = 18
+    for i, line in ipairs(instructions) do
+        gfx.drawText(line, 30, startY + (i - 1) * lineSpacing)
+    end
+
+    if pd.buttonJustPressed(pd.kButtonB) then
+        gfx.clear()
+        gameState = "stopped"
+    end
+end
+
+local function drawWinScreen()
+    gfx.clear(gfx.kColorWhite)
+    gfx.setFont(gfx.getSystemFont())
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+
+    -- Big centered title
+    gfx.drawTextAligned("You Survived!", 200, 80, kTextAlignment.center)
+
+    -- Subtext
+    gfx.drawTextAligned("The Owl Bears are defeated...", 200, 120, kTextAlignment.center)
+    gfx.drawTextAligned("But new challenges await.", 200, 140, kTextAlignment.center)
+
+    -- Instructions
+    gfx.drawTextAligned("Press A to play again", 200, 190, kTextAlignment.center)
+    gfx.drawTextAligned("Press B to return to Main Menu", 200, 210, kTextAlignment.center)
+
 end
 
 --Update
@@ -187,28 +300,59 @@ function pd.update()
         playerAnimation:draw(177, 17)
         gfx.drawText("Owl Invasion", 40, 25)
         gfx.drawText("Press A to Start", 25, 50)
+        gfx.drawText("Press B for Instructions", 25, 75)
 
         --Start Game
         if pd.buttonJustPressed(pd.kButtonA) then
             gfx.clear()
             playGame()
         end
+
+        if pd.buttonJustPressed(pd.kButtonB) then
+            gfx.clear()
+            gameState = "instructions"
+        end
+
     elseif gameState == "playing" then
         --Check if OwlBears are dead in the array and remove them
-        clearDeadOwlBearArray()
+        --clearDeadEnemyArray(currentWaveArray)
+
+        gfx.drawText("Health: " .. playerInstance:getHealth() .. "/" .. playerInstance:getMaxHealth(), 5, 5)
+        gfx.drawText("Energy: " .. playerInstance:getEnergy(), 5, 25)
+        gfx.drawText("Wave: " .. waveNum, 5, 45)
 
         if pd.buttonJustPressed(pd.kButtonB) then
             if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end 
         end
-        gfx.drawText("Health: " .. playerInstance:getHealth() .. "/" .. playerInstance:getMaxHealth(), 10, 5)
-        gfx.drawText("Energy: " .. playerInstance:getEnergy(), 150, 5)
-
+        
         --Game Over
         if playerInstance:getHealth() <= 0 then
             endGame()
         end
+        
         portalSprite:setImage(portalAnimation:image())
+    
+    elseif gameState == "instructions" then
+        drawInstructions()
+    
+    elseif gameState == "won" then
+        playerInstance:remove()
+        playerInstance.handSprite:remove()
+        spawnTimer:remove()
+        ClearOwlBearArray(currentWaveArray)
+        --Remove background
+        clearBackground()
+        gfx.clear()
+        
+        drawWinScreen()
+        if playdate.buttonJustPressed(playdate.kButtonA) then
+            gameState = "playing" -- restart gameplay
+        elseif playdate.buttonJustPressed(playdate.kButtonB) then
+            gameState = "stopped" -- go back to main menu
+        end
+
     end
 
+
     pd.timer.updateTimers()
-end 
+end

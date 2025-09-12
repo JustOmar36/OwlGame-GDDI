@@ -6,6 +6,7 @@ local gfx <const> = pd.graphics
 
 class("OwlBear").extends("DefaultCharacter")
 
+
 function OwlBear:init(x, y, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, speed, damage)
     self.playerImage = gfx.image.new("./images/OwlBear.png"):scaledImage(2)
     self.health = health
@@ -29,20 +30,14 @@ function OwlBear:collideWith(target)
             target.health = target.health - self.damage
         end
     end
-    
 end
 
-function OwlBear:getXLocation()
-    return self.x
-end
+function OwlBear:getXLocation() return self.x end
 
-function OwlBear:setXLocation(x)
-    self.x = x
-end
+function OwlBear:setXLocation(x) self.x = x end
 
-function OwlBear:collisionResponse(other)
-    return "overlap" -- allows overlapping without pushing back
-end
+-- allows overlapping without pushing back
+function OwlBear:collisionResponse(other) return "overlap" end
 
 
 function OwlBear:update()

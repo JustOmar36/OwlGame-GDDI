@@ -46,29 +46,26 @@ function Player:init(x, y, health, maxHealth, collesionX, collesionY,
 end
 
 --Energy Getter and Setter
-function Player:getEnergy()
-    return self.energy
-end
-
-function Player:setEnergy(energy)
-    self.energy += energy
-end
+function Player:getEnergy() return self.energy end
+function Player:setEnergy(energy) self.energy += energy end
 
 --Special Ability Getter and Setter
-function Player:getSpecialAbility()
-    return self.currentSpecialAbility
-end
-
-function Player:setSepecialAbility(ability)
-    self.currentSpecialAbility = ability
-end
+function Player:getSpecialAbility() return self.currentSpecialAbility end
+function Player:setSepecialAbility(ability) self.currentSpecialAbility = ability end
 
 --Heal Player
-function Player:healPlayer()
-    self.health = self:getMaxHealth()
-end
+function Player:healPlayer() self.health = self:getMaxHealth() end
 
+--Attack Frequency Getters and Setters
+function Player:getAttackFrequencyTimer() return self.attackFrequencyTimer end
+function Player:setAttackFrequencyTimer(timer) self.attackFrequencyTimer = timer end
 
+--Projectile Getters and Setters
+function Player:getProjectileSpeed() return self.projectileSpeed end
+function Player:setProjectileSpeed(speed) self.projectileSpeed = speed end
+
+function Player:getProjectileDamage() return self.projectileDamage end
+function Player:setProjectileDamage(damage) self.projectileDamage = damage end
 
 --Shoot projectile from current hand location
 function Player:fireProjectile(handX, handY)
@@ -131,6 +128,8 @@ function Player:update()
         self:setEnergy(1)
         self.energyTime = timeNow
     end
+
+    gfx.drawRect(0,0, 100, 100)
 
     --remove player on death
     if self.health <= 0 then
