@@ -1,9 +1,11 @@
-
 import "defaultCharacter"
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
+-- Disable some diagnostics for this file because we use dynamic fields
+-- (e.g. injecting `tag`, `vx`, `vy`) and Playdate collision responses
+---@diagnostic disable: undefined-field, inject-field, return-type-mismatch
 class("FlyingOwl").extends("DefaultCharacter")
 
 
@@ -34,6 +36,24 @@ function FlyingOwl:fire(startX, startY, targetX, targetY)
     local projectilesprite = gfx.sprite.new(projectileImage)
     projectilesprite:setZIndex(1)
     projectilesprite:setCollideRect(0, 0, 10, 10)
+    -- mark this sprite as a projectile so we can special-case projectile-vs-projectile collisions
+---@diagnostic disable-next-line: inject-field
+    projectilesprite.tag = "Projectile"
+
+    -- Ensure projectile vs projectile interactions are non-physical (overlap)
+    -- so projectiles don't block or push each other. We still receive collision
+    -- callbacks so hitting the player can be handled elsewhere.
+---@diagnostic disable-next-line: inject-field
+    projectilesprite.collisionResponse = function(self, other)
+        -- suppress undefined-field diagnostics for `other.tag` since many sprites
+        -- in this project use a `tag` field dynamically.
+        ---@diagnostic disable-next-line: undefined-field
+        if other and other.tag == "Projectile" then
+            return "overlap"
+        end
+
+        return "overlap"
+    end
 
     local dx = targetX - startX
     local dy = targetY - startY
@@ -44,14 +64,16 @@ function FlyingOwl:fire(startX, startY, targetX, targetY)
     local normY = dy / distance
 
     local vx = normX * self.projectileSpeed
-    local vx = normX * self.projectileSpeed
     local vy = normY * self.projectileSpeed
 
     -- capture owner so the projectile can call back for collision handling
     local owner = self
 
     -- attach velocity to the sprite so it can move every frame
+---@diagnostic disable-next-line: inject-field
     projectilesprite.vx = vx
+
+---@diagnostic disable-next-line: inject-field
     projectilesprite.vy = vy
 
     -- closure captures the FlyingOwl instance (owner) so collision handling can

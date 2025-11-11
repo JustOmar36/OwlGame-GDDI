@@ -14,6 +14,8 @@ function Projectiles:init(image, damage, speed, collisionSizeX, collisionSizeY)
     self.collisionSizeX = collisionSizeX or image:getWidth()
     self.collisionSizeY = collisionSizeY or image:getHeight()
     self:setCollideRect(collisionXPosition, collisionYPosition, self.collisionSizeX, self.collisionSizeY)
+    -- Tag this sprite as a projectile so collision handlers can identify it
+    self.tag = "Projectile"
     
     self:setZIndex(0) -- Ensure projectiles are drawn behind other sprites
 
@@ -52,7 +54,16 @@ function Projectiles:fire(x, y)
     self:add()
 end
 
-function Projectiles:collisionResponse(other) return "overlap" end
+function Projectiles:collisionResponse(other)
+    -- If we collided with another projectile, always overlap (no physical collision)
+    if other and other.tag == "Projectile" then
+        return "overlap"
+    end
+
+    -- Default to overlap so projectiles pass through but still register collisions
+    -- (we handle damage/removal in collideWith when appropriate)
+    return "overlap"
+end
 
 function Projectiles:update()
 

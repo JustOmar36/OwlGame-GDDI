@@ -88,12 +88,12 @@ local flyingOwlInfo = {
     flyingOwlMaxHealth = 10,
     owlCollesionX = 0,
     owlCollesionY = 0,
-    owlCollisionSizeX = 1,
-    owlCollisionSizeY = 1,
+    owlCollisionSizeX = 65,
+    owlCollisionSizeY = 65,
     owlSpeed = 1,
     flyingProjectileSpeed = 5,
-    flyingProjectileDamage = 10,
-    AttackFrequencyTimer = 3000,
+    flyingProjectileDamage = 20,
+    AttackFrequencyTimer = 6000,
 }
 
 
@@ -138,18 +138,16 @@ local function createEnemies(numOfEnemies)
 end
 
 local function ClearOwlBearArray(enemyArray)
-    if(enemyArray)then
-        for i = #enemyArray, 1, -1 do 
-            enemyArray[i]:remove()
-            table.remove(enemyArray, i)
-        end
+    for i = #enemyArray, 1, -1 do
+        enemyArray[i]:remove()
+        table.remove(enemyArray, i)
     end
 end
 
 local function startNextWave()
     
     currentWaveArray = createEnemies(initNumEnemies)
-    --enemyArrayLength = #currentWaveArray
+    local enemyArrayLength = #currentWaveArray - 1
 
     -- Kill old timer if it exists
     if spawnTimer then
@@ -157,7 +155,8 @@ local function startNextWave()
     end
 
     spawnTimer = pd.timer.keyRepeatTimerWithDelay(time, time, function()
-        local enemy = table.remove(currentWaveArray, 1)
+        local enemy = currentWaveArray[enemyArrayLength]
+        enemyArrayLength -= 1
         if enemy then
             enemy:add()
         else
