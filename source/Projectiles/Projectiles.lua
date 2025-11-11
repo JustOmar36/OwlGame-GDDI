@@ -7,14 +7,13 @@ local collisionYPosition <const>  = 5
 
 class('Projectiles').extends(gfx.sprite)
 
-function Projectiles:init(image, damage, speed, collisionSizeX, collisionSizeY, playerHealth)
+function Projectiles:init(image, damage, speed, collisionSizeX, collisionSizeY)
     self:setImage(image)
     self.damage = damage
     self.projectileSpeed = speed
     self.collisionSizeX = collisionSizeX or image:getWidth()
     self.collisionSizeY = collisionSizeY or image:getHeight()
     self:setCollideRect(collisionXPosition, collisionYPosition, self.collisionSizeX, self.collisionSizeY)
-    self.playerHealth = playerHealth
     
     self:setZIndex(0) -- Ensure projectiles are drawn behind other sprites
 
@@ -31,7 +30,7 @@ function Projectiles:collideWith(target)
         end
         
         self:remove()
-    end    
+    end  
 end
 
 -- Fire projectile from (x, y) given crank angle
@@ -53,9 +52,7 @@ function Projectiles:fire(x, y)
     self:add()
 end
 
-function Projectiles:collisionResponse(other)
-    return "overlap" -- allows overlapping without pushing back
-end
+function Projectiles:collisionResponse(other) return "overlap" end
 
 function Projectiles:update()
 
@@ -71,8 +68,6 @@ function Projectiles:update()
                 
         end
     end
-
-    if self.playerHealth <= 0 then self:remove() end
 
     -- Remove projectile if it goes off-screen
     if x < 0 or x > pd.display.getWidth() or y < 0 or y > pd.display.getHeight() then

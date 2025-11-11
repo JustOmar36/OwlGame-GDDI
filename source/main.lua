@@ -6,6 +6,7 @@ import "CoreLibs/timer"
 import "Characters/defaultCharacter"
 import "Characters/player"
 import "Characters/owlBear"
+import "Characters/flyingOwl"
 import "Gadgets/scooter"
 
 --Initializing Playdate SDK
@@ -19,7 +20,7 @@ local spawnTimer
 --Wave Management
 local currentWaveArray = {}
 local initNumEnemies = 4
-local waveNum = 0
+local waveNum = 1
 --local enemyArrayLength
 
 --Background
@@ -53,13 +54,13 @@ local playerInfo = {
     playerHealth = 100,
     playerMaxHealth = 100,
     playerCollisionXLocation = 20,
-    playerCollisionYLocation = 28,
-    playerCollisionXSize = 20,
-    playerCollisionYSize = 20,
+    playerCollisionYLocation = 30,
+    playerCollisionXSize = 10,
+    playerCollisionYSize = 10,
     playerProjectileSpeed = 5,
     playerProjectileDamage = 10,
     playerAttackFrequencyTimer = 3000,
-    energyTimer = 20000,
+    energyTimer = 15000,
 }
 local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation, playerInfo.playerHealth, playerInfo.playerMaxHealth, 
                                 playerInfo.playerCollisionXLocation, playerInfo.playerCollisionYLocation, playerInfo.playerCollisionXSize, 
@@ -78,6 +79,21 @@ local owlBearInfo = {
     owlCollisionSizeY = 65,
     owlSpeed = 1,
     owlBearDamage = 1,
+}
+
+local flyingOwlInfo = {
+    flyingOwlXlocation = 400,
+    flyingOwlYlocation = 50,
+    flyingOwlHealth = 10,
+    flyingOwlMaxHealth = 10,
+    owlCollesionX = 0,
+    owlCollesionY = 0,
+    owlCollisionSizeX = 1,
+    owlCollisionSizeY = 1,
+    owlSpeed = 1,
+    flyingProjectileSpeed = 5,
+    flyingProjectileDamage = 10,
+    AttackFrequencyTimer = 3000,
 }
 
 
@@ -100,33 +116,27 @@ local specialAbilties = {
 }
 
 --Spawn OwlBears and add to OwlBearArray
-local function createOwlBears(numOfEnemies)
-    local owlBearArray = {}
+local function createEnemies(numOfEnemies)
+    local enemyArray = {}
     for i = 0, numOfEnemies-1 do
         local owlBearInstance = OwlBear(owlBearInfo.owlBearXlocation, owlBearInfo.owlBearYlocation, 
-                                owlBearInfo.owlBearHealth, owlBearArray.owlBearMaxHealth, 
+                                owlBearInfo.owlBearHealth, enemyArray.owlBearMaxHealth, 
                                 owlBearInfo.owlCollesionX, owlBearInfo.owlCollesionY, owlBearInfo.owlCollisionSizeX, 
                                 owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
-        table.insert(owlBearArray, owlBearInstance)
+        table.insert(enemyArray, owlBearInstance)
+
+        local flyingOwlInstance = FlyingOwl(flyingOwlInfo.flyingOwlXlocation, flyingOwlInfo.flyingOwlYlocation, 
+                                flyingOwlInfo.flyingOwlHealth, enemyArray.flyingOwlMaxHealth,
+                                flyingOwlInfo.owlCollesionX, flyingOwlInfo.owlCollesionY,
+                                flyingOwlInfo.owlCollisionSizeX, flyingOwlInfo.owlCollisionSizeY,
+                                flyingOwlInfo.owlSpeed, flyingOwlInfo.flyingProjectileSpeed,
+                                flyingOwlInfo.flyingProjectileDamage, flyingOwlInfo.AttackFrequencyTimer)
+        table.insert(enemyArray, flyingOwlInstance)
     end
-    
-    return owlBearArray
+
+    return enemyArray
 end
 
---Remove Dead OwlBear
--- local function clearDeadEnemyArray(enemyArray)
---     if(enemyArray) and (#enemyArray >= 1) then
---         for i = #enemyArray, 1, -1 do 
---             local ob = enemyArray[i]
---             if ob.health <= 0 then
---                 ob:remove() 
---                 table.remove(enemyArray, i)
---             end
---         end
---     end
--- end
-
---Clear OwlBearArray & Reset OwlBear Array
 local function ClearOwlBearArray(enemyArray)
     if(enemyArray)then
         for i = #enemyArray, 1, -1 do 
@@ -138,7 +148,7 @@ end
 
 local function startNextWave()
     
-    currentWaveArray = createOwlBears(initNumEnemies)
+    currentWaveArray = createEnemies(initNumEnemies)
     --enemyArrayLength = #currentWaveArray
 
     -- Kill old timer if it exists
@@ -162,6 +172,7 @@ local function startNextWave()
                 waveNum += 1
                 initNumEnemies += 1
                 startNextWave()
+
                 owlBearInfo.owlSpeed += 0.1
                 owlBearInfo.owlBearDamage += 0.5
                 owlBearInfo.owlBearMaxHealth += 0.5
@@ -175,11 +186,6 @@ local function startNextWave()
                     playerInstance:setMaxHealth(playerInstance:getMaxHealth() + 10)
                     playerInstance:healPlayer()
                 end
-
-                if(waveNum == 15) then
-                    gameState = "won"
-                end
-
                 if(time ~= 1) then 
                     time -= time*0.005 
                 end --Speed up game

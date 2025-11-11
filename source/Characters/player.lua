@@ -70,7 +70,7 @@ function Player:setProjectileDamage(damage) self.projectileDamage = damage end
 --Shoot projectile from current hand location
 function Player:fireProjectile(handX, handY)
     local projectileImage = gfx.image.new("./images/Fireball.png"):scaledImage(0.7)
-    local projectile = Projectiles(projectileImage, self.projectileDamage, self.projectileSpeed, 10, 10, self:getHealth())
+    local projectile = Projectiles(projectileImage, self.projectileDamage, self.projectileSpeed, 10, 10)
     projectile:fire(handX, handY)
 
 end
@@ -108,7 +108,7 @@ end
 function Player:update()
 
     --timer as the game runs
-    local timeNow = playdate.getCurrentTimeMilliseconds()
+    local timeNow = pd.getCurrentTimeMilliseconds()
 
     -- Keep player within screen bounds
     local x, y = self:getPosition()

@@ -9,7 +9,9 @@
         "Projectiles",
         "OwlBear",
         "DefaultGadget",
-        "Scooter"
+        "Scooter",
+        "FlyingOwl",
+        "Projectile"
     ],
     // Sumneko Lua type definition doesn't support callbacks/overrides yet,
     // so do this to make playdate.update() override not complain as much
