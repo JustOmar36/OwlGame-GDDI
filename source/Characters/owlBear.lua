@@ -27,7 +27,11 @@ function OwlBear:collideWith(target)
         self:moveTo(self.x + 10, self.y) -- Knockback effects
         print("OwlBear hit " .. target.tag)
         if target.health then
-            target.health = target.health - self.damage
+            if target.takeDamage then
+                target:takeDamage(self.damage, self)
+            else
+                target.health = target.health - self.damage
+            end
         end
     end
 end

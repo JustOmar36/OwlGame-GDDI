@@ -35,10 +35,12 @@ function Scooter:collideWith(target)
         if (not self.collidedEnemies[target]) then
             print("Scooter hit " .. tostring(target.tag))
             if target.health then
-                target.health = target.health - self.damage
-                for i = 1, self:getKnockback() do
-                    target:moveTo((target.x + i), target.y)
+                if target.takeDamage then
+                    target:takeDamage(self.damage, self)
+                else
+                    target.health = target.health - self.damage
                 end
+                -- knockback is now handled by takeDamage when available
                 self.collidedEnemies[target] = true
             end
         end

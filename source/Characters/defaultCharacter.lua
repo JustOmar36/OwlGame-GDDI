@@ -1,6 +1,7 @@
 --Initializing Playdate SDK
 local pd <const> = playdate
 local gfx <const> = pd.graphics
+import "CoreLibs/timer"
 
 class('DefaultCharacter').extends(gfx.sprite)
 
@@ -13,7 +14,106 @@ function DefaultCharacter:init(x, y, image, health, maxHealth, collesionX, colle
     self.projectileSpeed = projectileSpeed
     self.projectileDamage = projectileDamage
     self.tag = tag
+    -- damage / invincibility state
+    self.invincible = false
+    -- duration in milliseconds to be invincible after taking damage
+    self.invincibleDuration = 500
+    -- blink interval in milliseconds while invincible
+    self._damageBlinkInterval = 100
 
+end
+
+-- Apply damage to this character. Handles invincibility window and simple blink feedback.
+function DefaultCharacter:takeDamage(amount, source)
+    if not amount then return end
+    if self.invincible then
+        return
+    end
+
+    -- subtract health
+    self.health = (self.health or 0) - amount
+
+    -- set invincible state
+    self.invincible = true
+
+    -- apply knockback if source provides one
+    local kb = 0
+    if source then
+        if source.getKnockback then
+            kb = source:getKnockback() or 0
+        elseif source.knockback then
+            kb = source.knockback or 0
+        end
+    end
+
+    if kb and kb > 0 then
+        -- get positions to compute direction (push away from source)
+        local sx, sy = nil, nil
+        if source and source.getPosition then
+            sx, sy = source:getPosition()
+        elseif source and source.x and source.y then
+            sx, sy = source.x, source.y
+        end
+
+        local tx, ty = self:getPosition()
+        local dir = 1
+        if sx and tx then
+            if (tx - sx) < 0 then dir = -1 end
+        end
+
+        -- Smooth knockback: move in small steps over the invincibility duration
+        local duration = math.min(self.invincibleDuration or 500, 600)
+        local steps = 8
+        local stepDelay = math.floor(duration / steps)
+        local stepAmount = (dir * kb) / steps
+        for i = 1, steps do
+            pd.timer.performAfterDelay(i * stepDelay, function()
+                if self.isRemoved and self:isRemoved() then return end
+                local curX, curY = self:getPosition()
+                self:moveTo(curX + stepAmount, curY)
+            end)
+        end
+    end
+
+    -- attempt to play a hit sound (load lazily and safely)
+    if not DefaultCharacter._hitSampleLoaded then
+        DefaultCharacter._hitSampleLoaded = true
+        -- load sample then create a sampleplayer (use pcall to avoid runtime errors if file missing)
+        local ok, sample = pcall(function()
+            return playdate.sound.sample.new("./sounds/hit.wav")
+        end)
+        if ok and sample then 
+            DefaultCharacter._hitSample = sample
+        end
+    end
+
+    if DefaultCharacter._hitSample then
+        pcall(function() DefaultCharacter._hitSample:play() end)
+    end
+
+    local duration = self.invincibleDuration or 500
+    local interval = self._damageBlinkInterval or 100
+    local iterations = math.floor(duration / interval)
+
+    -- schedule blink toggles
+    for i = 0, iterations do
+        pd.timer.performAfterDelay(i * interval, function()
+            -- If sprite was removed, nothing to do
+            if not self then return end
+            -- toggle visibility for simple visual feedback
+            if self.isRemoved and self:isRemoved() then return end
+            self:setVisible(not self:isVisible())
+        end)
+    end
+
+    -- ensure visible and clear invincibility at the end
+    pd.timer.performAfterDelay(duration + 10, function()
+        if not self then return end
+        if not (self.isRemoved and self:isRemoved()) then
+            self:setVisible(true)
+        end
+        self.invincible = false
+    end)
 end
 
 --Max Health Getter and Setter

@@ -101,7 +101,11 @@ function FlyingOwl:collisionCheck(projectile, numberOfCollisions, collisions)
         if other and other.className and other.tag == "Player" then
             print("Owl projectile hit the player!")
             if other.health then
-                other.health = other.health - self.damage
+                if other.takeDamage then
+                    other:takeDamage(self.damage, self)
+                else
+                    other.health = other.health - self.damage
+                end
             end
             projectile:remove()
         end

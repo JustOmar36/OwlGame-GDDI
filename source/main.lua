@@ -228,7 +228,7 @@ local function spawnScooter()
         scooterInfo.scooterCollisionSizeY, scooterInfo.scooterSpeed, scooterInfo.scooterCost, scooterInfo.scooterKnockBack)
 
         scooterInstance:add()
-        playerInstance:setCoins(-(scooterInstance:getCost()))
+        playerInstance:setCoins(playerInstance:getCoins()-(scooterInstance:getCost()))
     end
     
 end

@@ -28,7 +28,11 @@ function Projectiles:collideWith(target)
     if (target and target.className and target.tag == "Enemy") then
         print("Projectile hit " .. tostring(target.tag))
         if target.health then
-            target.health = target.health - self.damage
+            if target.takeDamage then
+                target:takeDamage(self.damage, self)
+            else
+                target.health = target.health - self.damage
+            end
         end
         
         self:remove()
