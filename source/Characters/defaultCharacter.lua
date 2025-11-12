@@ -21,6 +21,8 @@ function DefaultCharacter:init(x, y, image, health, maxHealth, collesionX, colle
     -- blink interval in milliseconds while invincible
     self._damageBlinkInterval = 100
 
+    self.damageSound = pd.sound.sample.new("./sounds/hit.wav")
+
 end
 
 -- Apply damage to this character. Handles invincibility window and simple blink feedback.
@@ -32,6 +34,11 @@ function DefaultCharacter:takeDamage(amount, source)
 
     -- subtract health
     self.health = (self.health or 0) - amount
+
+    -- play hit sound if available
+    if self.damageSound then
+        self.damageSound:play()
+    end
 
     -- set invincible state
     self.invincible = true
@@ -73,22 +80,6 @@ function DefaultCharacter:takeDamage(amount, source)
                 self:moveTo(curX + stepAmount, curY)
             end)
         end
-    end
-
-    -- attempt to play a hit sound (load lazily and safely)
-    if not DefaultCharacter._hitSampleLoaded then
-        DefaultCharacter._hitSampleLoaded = true
-        -- load sample then create a sampleplayer (use pcall to avoid runtime errors if file missing)
-        local ok, sample = pcall(function()
-            return playdate.sound.sample.new("./sounds/hit.wav")
-        end)
-        if ok and sample then 
-            DefaultCharacter._hitSample = sample
-        end
-    end
-
-    if DefaultCharacter._hitSample then
-        pcall(function() DefaultCharacter._hitSample:play() end)
     end
 
     local duration = self.invincibleDuration or 500
