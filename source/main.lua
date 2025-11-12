@@ -92,7 +92,7 @@ local flyingOwlInfo = {
     owlCollisionSizeY = 65,
     owlSpeed = 1,
     flyingProjectileSpeed = 5,
-    flyingProjectileDamage = 20,
+    flyingProjectileDamage = 0,
     AttackFrequencyTimer = 6000,
 }
 
@@ -147,19 +147,28 @@ end
 local function startNextWave()
     
     currentWaveArray = createEnemies(initNumEnemies)
-    local enemyArrayLength = #currentWaveArray - 1
+    local enemyArrayLength = #currentWaveArray
 
-    -- Kill old timer if it exists
     if spawnTimer then
         spawnTimer:remove()
     end
 
     spawnTimer = pd.timer.keyRepeatTimerWithDelay(time, time, function()
         local enemy = currentWaveArray[enemyArrayLength]
-        enemyArrayLength -= 1
+    
         if enemy then
             enemy:add()
-        else
+            enemyArrayLength -= 1
+        end
+
+        for i = #currentWaveArray, 1, -1 do
+            if currentWaveArray[i]:getHealth() <= 0 then
+                table.remove(currentWaveArray, i)
+            end
+            
+        end
+
+        if #currentWaveArray == 0 then
             spawnTimer:remove()
             spawnTimer = nil
             -- Wave is done → stop timer and auto-start next wave

@@ -28,6 +28,10 @@ function OwlBear:collideWith(target)
         print("OwlBear hit " .. target.tag)
         if target.health then
             target.health = target.health - self.damage
+            target.playerImage:invertedImage()
+            -- pd.timer.performAfterDelay(200, function()
+            --     target.playerImage:invertedImage()
+            -- end)
         end
     end
 end
