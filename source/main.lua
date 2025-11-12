@@ -13,6 +13,16 @@ import "Gadgets/scooter"
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
+--sound
+local backgroundMusic = pd.sound.sampleplayer.new("sounds/game.wav")
+backgroundMusic:setVolume(0.2)
+
+local mainmenuMusic = pd.sound.sampleplayer.new("sounds/mainmenu.wav")
+mainmenuMusic:setVolume(0.2)
+
+local waveCompleteSound = pd.sound.sampleplayer.new("sounds/wavecomplete.wav")
+waveCompleteSound:setVolume(0.5)
+
 --Timers
 local time = 3000
 local spawnTimer
@@ -93,8 +103,8 @@ local flyingOwlInfo = {
     owlCollisionSizeY = 65,
     owlSpeed = 1,
     flyingProjectileSpeed = 5,
-    flyingProjectileDamage = 10,
-    AttackFrequencyTimer = 6000,
+    flyingProjectileDamage = 1,
+    AttackFrequencyTimer = 5000,
 }
 
 
@@ -126,13 +136,15 @@ local function createEnemies(numOfEnemies)
                                 owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
         table.insert(enemyArray, owlBearInstance)
 
-        local flyingOwlInstance = FlyingOwl(flyingOwlInfo.flyingOwlXlocation, flyingOwlInfo.flyingOwlYlocation, 
-                                flyingOwlInfo.flyingOwlHealth, enemyArray.flyingOwlMaxHealth,
-                                flyingOwlInfo.owlCollesionX, flyingOwlInfo.owlCollesionY,
-                                flyingOwlInfo.owlCollisionSizeX, flyingOwlInfo.owlCollisionSizeY,
-                                flyingOwlInfo.owlSpeed, flyingOwlInfo.flyingProjectileSpeed,
-                                flyingOwlInfo.flyingProjectileDamage, flyingOwlInfo.AttackFrequencyTimer)
-        table.insert(enemyArray, flyingOwlInstance)
+        if waveNum > 3 then
+            local flyingOwlInstance = FlyingOwl(flyingOwlInfo.flyingOwlXlocation, flyingOwlInfo.flyingOwlYlocation, 
+                                    flyingOwlInfo.flyingOwlHealth, enemyArray.flyingOwlMaxHealth,
+                                    flyingOwlInfo.owlCollesionX, flyingOwlInfo.owlCollesionY,
+                                    flyingOwlInfo.owlCollisionSizeX, flyingOwlInfo.owlCollisionSizeY,
+                                    flyingOwlInfo.owlSpeed, flyingOwlInfo.flyingProjectileSpeed,
+                                    flyingOwlInfo.flyingProjectileDamage, flyingOwlInfo.AttackFrequencyTimer)
+            table.insert(enemyArray, flyingOwlInstance)
+        end
     end
 
     return enemyArray
@@ -180,6 +192,7 @@ local function startNextWave()
                 spawnTimer = nil
                 waveNum += 1
                 initNumEnemies += 1
+                waveCompleteSound:play()
                 startNextWave()
 
                 owlBearInfo.owlSpeed += 0.1
@@ -236,6 +249,11 @@ end
 --Play Game
 local function playGame()
     gameState = "playing"
+    if mainmenuMusic:isPlaying() then
+        mainmenuMusic:stop()
+        backgroundMusic:play(0,1)
+    end
+
     drawBackground()
     playerInstance:add()
     playerInstance:setHealth(playerInfo.playerHealth)
@@ -257,6 +275,11 @@ local function endGame()
     --Remove background
     clearBackground()
     gfx.clear()
+
+    if backgroundMusic:isPlaying() then
+        backgroundMusic:stop()
+    end
+
     --clear all sprites
     gfx.sprite.removeAll()
     --Reset Game State
@@ -303,6 +326,12 @@ end
 function pd.update()
     gfx.sprite.update()
     if gameState == "stopped" then
+        
+        if not mainmenuMusic:isPlaying() then
+            mainmenuMusic:play(0,1)
+        end
+
+        gfx.clear(gfx.kColorWhite)
         playerAnimation:draw(177, 17)
         gfx.drawText("Owl Invasion", 40, 25)
         gfx.drawText("Press A to Start", 25, 50)

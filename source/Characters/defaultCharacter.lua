@@ -21,7 +21,7 @@ function DefaultCharacter:init(x, y, image, health, maxHealth, collesionX, colle
     -- blink interval in milliseconds while invincible
     self._damageBlinkInterval = 100
 
-    self.damageSound = pd.sound.sample.new("./sounds/hit.wav")
+    self.damageSound = pd.sound.sampleplayer.new("./sounds/hit.wav")
 
 end
 

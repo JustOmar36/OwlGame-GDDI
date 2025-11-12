@@ -137,7 +137,7 @@ function FlyingOwl:update()
     local actualX, actualY, collisions, numberOfCollisions = self:moveWithCollisions(x, y)
 
     if timeNow - self.lastShotTimeOwl >= self.attackFrequencyTimer then
-        projectile = self:fire(x, y, 30, 200)
+        self:fire(x, y, 30, 200)
         self.lastShotTimeOwl = timeNow
     end
 
