@@ -10,7 +10,7 @@ class("Player").extends("DefaultCharacter")
 
 function Player:init(x, y, health, maxHealth, collesionX, collesionY, 
     collisionSizeX, collisionSizeY, projectileSpeed, projectileDamage, 
-    attackFrquencyTimer, playerEnergyTimer)
+    attackFrquencyTimer)
 
     self.playerImage = gfx.image.new("./images/V-Char-sideways.png"):scaledImage(2)
     self.handImage = gfx.image.new("./images/hand.png")
@@ -19,12 +19,11 @@ function Player:init(x, y, health, maxHealth, collesionX, collesionY,
     self.attackFrequencyTimer = attackFrquencyTimer
     self.projectileSpeed = projectileSpeed
     self.projectileDamage = projectileDamage
-    self.playerEnergyTimer = playerEnergyTimer
 
     self.handSprite:setZIndex(1)
 
     --player energy
-    self.energy = 0
+    self.coins = 0
 
     --Player Max Health
     self.maxHealth = maxHealth
@@ -40,14 +39,13 @@ function Player:init(x, y, health, maxHealth, collesionX, collesionY,
 
     --timers
     self.lastShotTime = pd.getCurrentTimeMilliseconds()
-    self.energyTime = pd.getCurrentTimeMilliseconds()
 
     Player.super.init(self, x, y, self.playerImage, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed, projectileDamage, self.tag)
 end
 
 --Energy Getter and Setter
-function Player:getEnergy() return self.energy end
-function Player:setEnergy(energy) self.energy += energy end
+function Player:getCoins() return self.coins end
+function Player:setCoins(coins) self.coins = coins end
 
 --Special Ability Getter and Setter
 function Player:getSpecialAbility() return self.currentSpecialAbility end
@@ -123,17 +121,11 @@ function Player:update()
         self.lastShotTime = timeNow
     end
 
-    --Increase energy on a timer
-    if timeNow - self.energyTime >= self.playerEnergyTimer then
-        self:setEnergy(1)
-        self.energyTime = timeNow
-    end
-
     gfx.drawRect(0,0, 100, 100)
 
     --remove player on death
     if self.health <= 0 then
-        self.remove()
+        self:remove()
         self.handSprite:remove()
     end
 

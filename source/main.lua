@@ -62,11 +62,12 @@ local playerInfo = {
     playerAttackFrequencyTimer = 3000,
     energyTimer = 15000,
 }
-local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation, playerInfo.playerHealth, playerInfo.playerMaxHealth, 
-                                playerInfo.playerCollisionXLocation, playerInfo.playerCollisionYLocation, playerInfo.playerCollisionXSize, 
-                                playerInfo.playerCollisionYSize, playerInfo.playerProjectileSpeed, playerInfo.playerProjectileDamage, playerInfo.playerAttackFrequencyTimer, 
-                                playerInfo.energyTimer)
 
+local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation,
+                        playerInfo.playerHealth, playerInfo.playerMaxHealth, 
+                        playerInfo.playerCollisionXLocation, playerInfo.playerCollisionYLocation, 
+                        playerInfo.playerCollisionXSize, playerInfo.playerCollisionYSize,
+                        playerInfo.playerProjectileSpeed, playerInfo.playerProjectileDamage, playerInfo.playerAttackFrequencyTimer)
 --Enemies: OwlBear
 local owlBearInfo = {
     owlBearXlocation = 400,
@@ -92,7 +93,7 @@ local flyingOwlInfo = {
     owlCollisionSizeY = 65,
     owlSpeed = 1,
     flyingProjectileSpeed = 5,
-    flyingProjectileDamage = 0,
+    flyingProjectileDamage = 10,
     AttackFrequencyTimer = 6000,
 }
 
@@ -164,8 +165,8 @@ local function startNextWave()
         for i = #currentWaveArray, 1, -1 do
             if currentWaveArray[i]:getHealth() <= 0 then
                 table.remove(currentWaveArray, i)
-            end
-            
+                playerInstance:setCoins(playerInstance:getCoins() + 1)
+            end 
         end
 
         if #currentWaveArray == 0 then
@@ -221,13 +222,13 @@ local function clearBackground()
 end
 
 local function spawnScooter()
-    if(playerInstance:getEnergy() >= specialAbilties[playerInstance:getSpecialAbility()]) then
+    if(playerInstance:getCoins() >= specialAbilties[playerInstance:getSpecialAbility()]) then
         local scooterInstance = Scooter(scooterInfo.scooterXLocation, scooterInfo.scooterYLocation, scooterInfo.scooterDamage, 
         scooterInfo.scooterCollesionX, scooterInfo.scooterCollesionY, scooterInfo.scooterCollesionSizeX, 
         scooterInfo.scooterCollisionSizeY, scooterInfo.scooterSpeed, scooterInfo.scooterCost, scooterInfo.scooterKnockBack)
 
         scooterInstance:add()
-        playerInstance:setEnergy(-(scooterInstance:getCost()))
+        playerInstance:setCoins(-(scooterInstance:getCost()))
     end
     
 end
@@ -237,25 +238,29 @@ local function playGame()
     gameState = "playing"
     drawBackground()
     playerInstance:add()
+    playerInstance:setHealth(playerInfo.playerHealth)
     playerInstance:setSepecialAbility("scooter")
     portalSprite:add()
-    print(tostring(playerInstance:getSpecialAbility()))
     startNextWave()
 end
 
 --Gamer Over
 local function endGame()
-    gameState = "stopped"
     playerInstance:remove()
     playerInstance.handSprite:remove()
+    playerInstance:setCoins(0)
     spawnTimer:remove()
     ClearOwlBearArray(currentWaveArray)
-    waveNum = 0
+    waveNum = 1
     initNumEnemies = 4
     currentWaveArray = {}
     --Remove background
     clearBackground()
     gfx.clear()
+    --clear all sprites
+    gfx.sprite.removeAll()
+    --Reset Game State
+    gameState = "stopped"
 end
 
 local function drawInstructions()
@@ -294,23 +299,6 @@ local function drawInstructions()
     end
 end
 
-local function drawWinScreen()
-    gfx.clear(gfx.kColorWhite)
-    gfx.setFont(gfx.getSystemFont())
-    gfx.setImageDrawMode(gfx.kDrawModeCopy)
-
-    -- Big centered title
-    gfx.drawTextAligned("You Survived!", 200, 80, kTextAlignment.center)
-
-    -- Subtext
-    gfx.drawTextAligned("The Owl Bears are defeated...", 200, 120, kTextAlignment.center)
-    gfx.drawTextAligned("But new challenges await.", 200, 140, kTextAlignment.center)
-
-    -- Instructions
-    gfx.drawTextAligned("Press B to return to Main Menu", 200, 210, kTextAlignment.center)
-
-end
-
 --Update
 function pd.update()
     gfx.sprite.update()
@@ -336,7 +324,7 @@ function pd.update()
         --clearDeadEnemyArray(currentWaveArray)
 
         gfx.drawText("Health: " .. playerInstance:getHealth() .. "/" .. playerInstance:getMaxHealth(), 5, 5)
-        gfx.drawText("Energy: " .. playerInstance:getEnergy(), 5, 25)
+        gfx.drawText("MO: " .. playerInstance:getCoins(), 5, 25)
         gfx.drawText("Wave: " .. waveNum, 5, 45)
 
         if pd.buttonJustPressed(pd.kButtonB) then
@@ -352,12 +340,7 @@ function pd.update()
     
     elseif gameState == "instructions" then
         drawInstructions()
-    
-    elseif gameState == "won" then
-        drawWinScreen()
-        if playdate.buttonJustPressed(playdate.kButtonB) then
-            endGame()
-        end
     end
+
     pd.timer.updateTimers()
 end
