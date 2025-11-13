@@ -47,9 +47,7 @@ function OwlBear:collisionResponse(other) return "overlap" end
 function OwlBear:update()
     OwlBear.super.update(self)
 
-    -- Move left across the screen
     local x, y = self:getPosition()
-
     local actualX, actualY, collisions, numberOfCollisions = self:moveWithCollisions(x - self.speed, y)
 
     if numberOfCollisions > 0 then

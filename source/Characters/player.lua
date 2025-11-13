@@ -121,8 +121,6 @@ function Player:update()
         self.lastShotTime = timeNow
     end
 
-    gfx.drawRect(0,0, 100, 100)
-
     --remove player on death
     if self.health <= 0 then
         self:remove()

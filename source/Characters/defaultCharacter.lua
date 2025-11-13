@@ -9,10 +9,15 @@ function DefaultCharacter:init(x, y, image, health, maxHealth, collesionX, colle
     self:moveTo(x, y)
     self:setImage(image)
     self:setCollideRect(collesionX, collesionY, collesionSizeX, collisionSizeY)
-    self.health = health
-    self.maxHealth = maxHealth
+    -- Ensure sensible defaults so health bar drawing works even if callers omit values
+    self.health = (health ~= nil) and health or 1
+    self.maxHealth = (maxHealth ~= nil) and maxHealth or self.health
     self.projectileSpeed = projectileSpeed
     self.projectileDamage = projectileDamage
+    -- Ensure sprite draws above background by default (subclasses can override)
+    if not self:getZIndex() then
+        self:setZIndex(10)
+    end
     self.tag = tag
     -- damage / invincibility state
     self.invincible = false
@@ -22,6 +27,9 @@ function DefaultCharacter:init(x, y, image, health, maxHealth, collesionX, colle
     self._damageBlinkInterval = 100
 
     self.damageSound = pd.sound.sampleplayer.new("./sounds/hit.wav")
+
+    self.healthbarBackground = nil
+    self.healthbarForeground = nil
 
 end
 
@@ -107,6 +115,44 @@ function DefaultCharacter:takeDamage(amount, source)
     end)
 end
 
+function DefaultCharacter:drawHealthBar(width, height)
+    -- Debug: log when healthbar is drawn and values
+    print("drawHealthBar called for", tostring(self), "health=", tostring(self.health), "max=", tostring(self.maxHealth))
+
+    -- Defensive checks
+    if not self then return end
+    if not self.health or not self.maxHealth or self.maxHealth == 0 then return end
+
+    local x, y = self:getPosition()
+    x -= width / 2
+    y -= height / 2 + 40
+    local healthPercent = math.max(0, math.min(1, (self.health or 0) / (self.maxHealth or 1)))
+    local barWidth = math.floor(width * healthPercent)
+
+    -- Draw background bar (black)
+    gfx.setColor(gfx.kColorBlack)
+    local b = gfx.fillRoundRect(x, y, width, height, 1)
+
+    -- Draw health bar (white)
+    gfx.setColor(gfx.kColorWhite)
+    local h = gfx.fillRoundRect(x+1, y+1, barWidth-2, height-2, 2)
+
+    self.healthbarBackground = b
+    self.healthbarForeground = h
+
+end
+
+function DefaultCharacter:removeHealthBar()
+    if self.healthbarBackground then
+        self.healthbarBackground:remove()
+        self.healthbarBackground = nil
+    end
+    if self.healthbarForeground then
+        self.healthbarForeground:remove()
+        self.healthbarForeground = nil
+    end
+end
+
 --Max Health Getter and Setter
 function DefaultCharacter:getMaxHealth() return self.maxHealth end
 function DefaultCharacter:setMaxHealth(maxHealth) self.maxHealth = maxHealth end
@@ -122,15 +168,12 @@ function DefaultCharacter:getProjectSpeed() return self.projectileSpeed end
 function DefaultCharacter:SetProjectileDamage(damage) self.projectileDamage = damage end
 function DefaultCharacter:getProjectileDamage() return self.projectileDamage end
 
+function DefaultCharacter:getXLocation() return self.x end
+function DefaultCharacter:setXLocation(x) self.x = x end
+
+function DefaultCharacter:setYLocation(y) self.y = y end
+function DefaultCharacter:getYLocation() return self.y end
+
 function DefaultCharacter:update()
-
-    local x, y = self:getPosition()
-    local width, height = self:getSize()
-
-    -- Keep player within screen bounds
-    x = math.max(width / 2, math.min(pd.display.getWidth() - width / 2, x))
-    y = math.max(height / 2, math.min(pd.display.getHeight() - height / 2, y))
-    self:moveTo(x, y)
-
-
+    
 end

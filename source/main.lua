@@ -8,6 +8,7 @@ import "Characters/player"
 import "Characters/owlBear"
 import "Characters/flyingOwl"
 import "Gadgets/scooter"
+import "Tower/tower"
 
 --Initializing Playdate SDK
 local pd <const> = playdate
@@ -16,10 +17,8 @@ local gfx <const> = pd.graphics
 --sound
 local backgroundMusic = pd.sound.sampleplayer.new("sounds/game.wav")
 backgroundMusic:setVolume(0.2)
-
 local mainmenuMusic = pd.sound.sampleplayer.new("sounds/mainmenu.wav")
 mainmenuMusic:setVolume(0.2)
-
 local waveCompleteSound = pd.sound.sampleplayer.new("sounds/wavecomplete.wav")
 waveCompleteSound:setVolume(0.5)
 
@@ -31,7 +30,6 @@ local spawnTimer
 local currentWaveArray = {}
 local initNumEnemies = 4
 local waveNum = 1
---local enemyArrayLength
 
 --Background
 local backgroundImage = gfx.image.new( "images/background.png" )
@@ -42,24 +40,25 @@ local playerStart2 <const> = gfx.image.new("images/V-Peace2.png"):scaledImage(7)
 local playerAnimation = gfx.animation.loop.new(1500, {playerStart1, playerStart2})
 
 -- Portal Animation
-local frame1 <const> = gfx.image.new("images/portal animation/Portal1.png"):scaledImage(3)
-local frame2 <const> = gfx.image.new("images/portal animation/Portal2.png"):scaledImage(3)
-local frame3 <const> = gfx.image.new("images/portal animation/Portal3.png"):scaledImage(3)
-local frame4 <const> = gfx.image.new("images/portal animation/Portal4.png"):scaledImage(3)
+local frame1 <const> = gfx.image.new("images/portal animation/Portal1.png"):scaledImage(2.5)
+local frame2 <const> = gfx.image.new("images/portal animation/Portal2.png"):scaledImage(2.4)
+local frame3 <const> = gfx.image.new("images/portal animation/Portal3.png"):scaledImage(2.3)
+local frame4 <const> = gfx.image.new("images/portal animation/Portal4.png"):scaledImage(2.5)
 local portalAnimation = gfx.animation.loop.new(1000, {frame1, frame2, frame3, frame4})
 local portalSprite = gfx.sprite.new()
 portalSprite:setImage(portalAnimation:image())
-portalSprite:moveTo(350, 110)
+portalSprite:moveTo(350, 150)
 portalSprite:setZIndex(0) -- pick a zIndex relative to other game objects
 
---TO DO : IMPLEMENT FLYING MONSTERS
+-- Tower Array
+local towers = {}
 
 --Game State
 local gameState = "stopped"
 
 --Player Setup
 local playerInfo = {
-    playerXlocation = 30,
+    playerXlocation = 50,
     playerYlocation = 200,
     playerHealth = 100,
     playerMaxHealth = 100,
@@ -89,7 +88,7 @@ local owlBearInfo = {
     owlCollisionSizeX = 65,
     owlCollisionSizeY = 65,
     owlSpeed = 1,
-    owlBearDamage = 1,
+    owlBearDamage = 25,
 }
 
 local flyingOwlInfo = {
@@ -105,6 +104,18 @@ local flyingOwlInfo = {
     flyingProjectileSpeed = 5,
     flyingProjectileDamage = 1,
     AttackFrequencyTimer = 5000,
+}
+
+local towerInfo = {
+    towerXLocation = 150,
+    towerYLocation = 150,
+    towerHealth = 5,
+    towerMaxHealth = 100,
+    towerCollesionX = -32,
+    towerCollesionY = -32,
+    towerCollesionSizeX = 64,
+    towerCollisionSizeY = 64,
+    towerLevel = 1,
 }
 
 
@@ -131,7 +142,7 @@ local function createEnemies(numOfEnemies)
     local enemyArray = {}
     for i = 0, numOfEnemies-1 do
         local owlBearInstance = OwlBear(owlBearInfo.owlBearXlocation, owlBearInfo.owlBearYlocation, 
-                                owlBearInfo.owlBearHealth, enemyArray.owlBearMaxHealth, 
+                                owlBearInfo.owlBearHealth, owlBearInfo.owlBearMaxHealth, 
                                 owlBearInfo.owlCollesionX, owlBearInfo.owlCollesionY, owlBearInfo.owlCollisionSizeX, 
                                 owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
         table.insert(enemyArray, owlBearInstance)
@@ -349,19 +360,34 @@ function pd.update()
         end
 
     elseif gameState == "playing" then
-        --Check if OwlBears are dead in the array and remove them
-        --clearDeadEnemyArray(currentWaveArray)
+        gfx.drawText(tostring(waveNum), 195, 5)
+        gfx.drawText("Feathers: " .. playerInstance:getCoins(), 300, 3)
+        gfx.drawText("MO: " .. playerInstance:getCoins(), 347, 20)
 
-        gfx.drawText("Health: " .. playerInstance:getHealth() .. "/" .. playerInstance:getMaxHealth(), 5, 5)
-        gfx.drawText("MO: " .. playerInstance:getCoins(), 5, 25)
-        gfx.drawText("Wave: " .. waveNum, 5, 45)
-
+        playerInstance:drawHealthBar(50, 6)
+    
         if pd.buttonJustPressed(pd.kButtonB) then
-            if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end 
+            if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end
         end
+
+        if pd.buttonIsPressed(pd.kButtonUp) then
+            for i = 0, 2 do
+                if towers[i] == nil then
+                    towers[i] = Tower:spawnTower(playerInstance)
+                    playerInstance:setYLocation(playerInstance:getYLocation() - 50)
+                    playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
+                    break
+                end
+            end
+        end
+
+        if towers[0] then towers[0]:update() end
+        if towers[1] then towers[1]:update() end
+        if towers[2] then towers[2]:update() end
         
         --Game Over
         if playerInstance:getHealth() <= 0 then
+
             endGame()
         end
         
