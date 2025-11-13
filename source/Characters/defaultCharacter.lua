@@ -14,6 +14,7 @@ function DefaultCharacter:init(x, y, image, health, maxHealth, collesionX, colle
     self.maxHealth = (maxHealth ~= nil) and maxHealth or self.health
     self.projectileSpeed = projectileSpeed
     self.projectileDamage = projectileDamage
+    self.originalX = x
     -- Ensure sprite draws above background by default (subclasses can override)
     if not self:getZIndex() then
         self:setZIndex(10)
@@ -116,9 +117,6 @@ function DefaultCharacter:takeDamage(amount, source)
 end
 
 function DefaultCharacter:drawHealthBar(width, height)
-    -- Debug: log when healthbar is drawn and values
-    print("drawHealthBar called for", tostring(self), "health=", tostring(self.health), "max=", tostring(self.maxHealth))
-
     -- Defensive checks
     if not self then return end
     if not self.health or not self.maxHealth or self.maxHealth == 0 then return end
@@ -144,12 +142,20 @@ end
 
 function DefaultCharacter:removeHealthBar()
     if self.healthbarBackground then
-        self.healthbarBackground:remove()
         self.healthbarBackground = nil
     end
     if self.healthbarForeground then
-        self.healthbarForeground:remove()
         self.healthbarForeground = nil
+    end
+end
+
+--Check if collision box is set
+function DefaultCharacter:isCollisionBoxSet()
+    local rect = self:getCollideRect()
+    if rect then
+        return true
+    else
+        return false
     end
 end
 
@@ -168,6 +174,7 @@ function DefaultCharacter:getProjectSpeed() return self.projectileSpeed end
 function DefaultCharacter:SetProjectileDamage(damage) self.projectileDamage = damage end
 function DefaultCharacter:getProjectileDamage() return self.projectileDamage end
 
+function DefaultCharacter:getOriginalXLocation() return self.originalX end
 function DefaultCharacter:getXLocation() return self.x end
 function DefaultCharacter:setXLocation(x) self.x = x end
 
@@ -175,5 +182,10 @@ function DefaultCharacter:setYLocation(y) self.y = y end
 function DefaultCharacter:getYLocation() return self.y end
 
 function DefaultCharacter:update()
-    
+    --Keep characters in screen bounds
+    local x, y = self:getPosition()
+    local screenWidth, screenHeight = pd.display.getSize()
+    x = math.max(25, math.min(screenWidth, x))
+    y = math.max(0, math.min(screenHeight, y))
+    self:moveTo(x, y)
 end

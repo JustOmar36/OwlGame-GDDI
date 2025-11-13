@@ -18,6 +18,10 @@ function Tower:init(x, y, image, health, maxHealth, collesionX, collesionY, coll
     -- blink interval in milliseconds while invincible
     self._damageBlinkInterval = 100
 
+    --Healthbar
+    self.healthBarBackground = nil
+    self.healthBar = nil
+
     self:setZIndex(0)
 end
 
@@ -80,11 +84,11 @@ function Tower:draweHealthBar(width, height)
 
     -- Draw background (black)
     gfx.setColor(gfx.kColorBlack)
-    gfx.fillRoundRect(x, y, width, height, 2)
+    self.healthBarBackground = gfx.sprite.new(gfx.fillRoundRect(x, y, width, height, 2))
 
     -- Draw health bar (white)
     gfx.setColor(gfx.kColorWhite)
-    gfx.fillRoundRect(x+1, y+1, barWidth-2, height-2, 2)
+    self.healthBar = gfx.sprite.new(gfx.fillRoundRect(x+1, y+1, barWidth-2, height-2, 2))
 
 end
 
@@ -101,6 +105,7 @@ function Tower:update()
     if self.health <= 0 then
         print("Tower has been destroyed!")
         self:remove()
+    else 
+        self:draweHealthBar(25, 8)
     end
-    self:draweHealthBar(25, 8)
 end

@@ -93,7 +93,6 @@ local owlBearInfo = {
 
 local flyingOwlInfo = {
     flyingOwlXlocation = 400,
-    flyingOwlYlocation = 50,
     flyingOwlHealth = 10,
     flyingOwlMaxHealth = 10,
     owlCollesionX = 0,
@@ -147,8 +146,9 @@ local function createEnemies(numOfEnemies)
                                 owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
         table.insert(enemyArray, owlBearInstance)
 
-        if waveNum > 3 then
-            local flyingOwlInstance = FlyingOwl(flyingOwlInfo.flyingOwlXlocation, flyingOwlInfo.flyingOwlYlocation, 
+        if waveNum > 0 then
+            local randomYAxis = math.random(90, 110)
+            local flyingOwlInstance = FlyingOwl(flyingOwlInfo.flyingOwlXlocation, randomYAxis, 
                                     flyingOwlInfo.flyingOwlHealth, enemyArray.flyingOwlMaxHealth,
                                     flyingOwlInfo.owlCollesionX, flyingOwlInfo.owlCollesionY,
                                     flyingOwlInfo.owlCollisionSizeX, flyingOwlInfo.owlCollisionSizeY,
@@ -159,6 +159,16 @@ local function createEnemies(numOfEnemies)
     end
 
     return enemyArray
+end
+
+local function drawEnemyHealthBars()
+    if currentWaveArray then
+        for i = 1, #currentWaveArray do
+            if (currentWaveArray[i]:getOriginalXLocation() ~= currentWaveArray[i]:getXLocation()) and (currentWaveArray[i]:getHealth() > 0) then
+                currentWaveArray[i]:drawHealthBar(20, 6)
+            end
+        end
+    end
 end
 
 local function ClearOwlBearArray(enemyArray)
@@ -363,8 +373,6 @@ function pd.update()
         gfx.drawText(tostring(waveNum), 195, 5)
         gfx.drawText("Feathers: " .. playerInstance:getCoins(), 300, 3)
         gfx.drawText("MO: " .. playerInstance:getCoins(), 347, 20)
-
-        playerInstance:drawHealthBar(50, 6)
     
         if pd.buttonJustPressed(pd.kButtonB) then
             if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end
@@ -384,11 +392,16 @@ function pd.update()
         if towers[0] then towers[0]:update() end
         if towers[1] then towers[1]:update() end
         if towers[2] then towers[2]:update() end
+
+        --Draw enemy healthbars
+        drawEnemyHealthBars()
         
         --Game Over
         if playerInstance:getHealth() <= 0 then
-
             endGame()
+        else
+            --Draw Player Healthbar
+             playerInstance:drawHealthBar(50, 6)
         end
         
         portalSprite:setImage(portalAnimation:image())
