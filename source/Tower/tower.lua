@@ -101,6 +101,12 @@ function Tower:setHealth(health) self.health = health end
 function Tower:getMaxHealth() return self.maxHealth end
 function Tower:setMaxHealth(maxHealth) self.maxHealth = maxHealth end
 
+function Tower:getXLocation() return self.x end
+function Tower:setXLocation(x) self.x = x end
+
+function Tower:getYLocation() return self.y end
+function Tower:setYLocation(y) self.y = y end
+
 function Tower:update()
     if self.health <= 0 then
         print("Tower has been destroyed!")

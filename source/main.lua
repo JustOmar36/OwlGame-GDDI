@@ -267,6 +267,46 @@ local function spawnScooter()
     
 end
 
+local function clearTowers()
+    for i = 0, 2 do
+        if towers[i] then
+            towers[i]:remove()
+            towers[i] = nil
+        end
+    end
+end
+
+local function handleTowerDestruction()
+    if towers[0] and towers[0]:getHealth() <= 0 then
+        towers[0]:remove()
+        towers[0] = nil
+
+        if not towers[1] and not towers[2] then
+            playerInstance:setYLocation(200)
+            playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
+        end
+    end
+
+    if towers[1] and towers[1]:getHealth() > 0 and not towers[0] then
+        towers[0] = towers[1]
+        towers[0]:moveTo(towers[0]:getXLocation(), towers[0]:getYLocation()+50)
+        playerInstance:setYLocation(playerInstance:getYLocation() + 25)
+        playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
+        towers[1] = nil
+    end
+
+    if towers[2] and towers[2]:getHealth() > 0 and not towers[1] then
+        if not towers[1] then
+            towers[1] = towers[2]
+            towers[1]:moveTo(towers[1]:getXLocation(), towers[1]:getYLocation()+50)
+            playerInstance:setYLocation(playerInstance:getYLocation() + 25)
+            playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
+            towers[2] = nil
+        end
+    end
+
+end
+
 --Play Game
 local function playGame()
     gameState = "playing"
@@ -290,6 +330,7 @@ local function endGame()
     playerInstance:setCoins(0)
     spawnTimer:remove()
     ClearOwlBearArray(currentWaveArray)
+    clearTowers()
     waveNum = 1
     initNumEnemies = 4
     currentWaveArray = {}
@@ -389,9 +430,19 @@ function pd.update()
             end
         end
 
-        if towers[0] then towers[0]:update() end
-        if towers[1] then towers[1]:update() end
-        if towers[2] then towers[2]:update() end
+        if towers[0] and towers[0]:getHealth() > 0 then 
+            towers[0]:update() 
+        else 
+            handleTowerDestruction()
+        end
+        if towers[1] and towers[1]:getHealth() > 0 
+        then 
+            towers[1]:update() 
+         end
+        if towers[2] and towers[2]:getHealth() > 0 
+        then 
+            towers[2]:update() 
+         end
 
         --Draw enemy healthbars
         drawEnemyHealthBars()
