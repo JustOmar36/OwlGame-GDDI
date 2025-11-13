@@ -288,18 +288,26 @@ local function handleTowerDestruction()
     end
 
     if towers[1] and towers[1]:getHealth() > 0 and not towers[0] then
-        towers[0] = towers[1]
-        towers[0]:moveTo(towers[0]:getXLocation(), towers[0]:getYLocation()+50)
-        playerInstance:setYLocation(playerInstance:getYLocation() + 25)
-        playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
-        towers[1] = nil
+        if towers[2] and towers[2]:getHealth() > 0 then
+            towers[0] = towers[1]
+            towers[0]:moveTo(towers[0]:getXLocation(), towers[0]:getYLocation()+50)
+            playerInstance:setYLocation(playerInstance:getYLocation() + 25)
+            playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
+            towers[1] = nil
+        else
+            towers[0] = towers[1]
+            towers[0]:moveTo(towers[0]:getXLocation(), towers[0]:getYLocation()+50)
+            playerInstance:setYLocation(playerInstance:getYLocation() + 50)
+            playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
+            towers[1] = nil
+        end
     end
 
     if towers[2] and towers[2]:getHealth() > 0 and not towers[1] then
         if not towers[1] then
             towers[1] = towers[2]
             towers[1]:moveTo(towers[1]:getXLocation(), towers[1]:getYLocation()+50)
-            playerInstance:setYLocation(playerInstance:getYLocation() + 25)
+            playerInstance:setYLocation(playerInstance:getYLocation() + 20)
             playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
             towers[2] = nil
         end
