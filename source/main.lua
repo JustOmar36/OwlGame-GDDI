@@ -6,6 +6,7 @@ import "CoreLibs/timer"
 import "Characters/defaultCharacter"
 import "Characters/player"
 import "Characters/owlBear"
+import "Characters/owlKing"
 import "Characters/flyingOwl"
 import "Gadgets/scooter"
 import "Tower/tower"
@@ -88,7 +89,7 @@ local owlBearInfo = {
     owlCollisionSizeX = 65,
     owlCollisionSizeY = 65,
     owlSpeed = 1,
-    owlBearDamage = 25,
+    owlBearDamage = 5,
 }
 
 local flyingOwlInfo = {
@@ -105,17 +106,23 @@ local flyingOwlInfo = {
     AttackFrequencyTimer = 5000,
 }
 
-local towerInfo = {
-    towerXLocation = 150,
-    towerYLocation = 150,
-    towerHealth = 5,
-    towerMaxHealth = 100,
-    towerCollesionX = -32,
-    towerCollesionY = -32,
-    towerCollesionSizeX = 64,
-    towerCollisionSizeY = 64,
-    towerLevel = 1,
+local owlKingInfo = {
+    owlKingXlocation = 400,
+    owlKingYlocation = 210,
+    owlKingHealth = 100,
+    owlKingMaxHealth = 100,
+    owlCollesionX = 0,
+    owlCollesionY = 0,
+    owlCollisionSizeX = 65,
+    owlCollisionSizeY = 65,
+    owlSpeed = 1,
+    owlKingDamage = 5,
 }
+
+local bossInstance = OwlKing(owlKingInfo.owlKingXlocation, owlKingInfo.owlKingYlocation, 
+                            owlKingInfo.owlKingHealth, owlKingInfo.owlKingMaxHealth, 
+                            owlKingInfo.owlCollesionX, owlKingInfo.owlCollesionY, owlKingInfo.owlCollisionSizeX, 
+                            owlKingInfo.owlCollisionSizeY, owlKingInfo.owlSpeed, owlKingInfo.owlKingDamage)
 
 
 local scooterInfo = {
@@ -146,7 +153,7 @@ local function createEnemies(numOfEnemies)
                                 owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
         table.insert(enemyArray, owlBearInstance)
 
-        if waveNum > 0 then
+        if waveNum >= 6 then
             local randomYAxis = math.random(90, 110)
             local flyingOwlInstance = FlyingOwl(flyingOwlInfo.flyingOwlXlocation, randomYAxis, 
                                     flyingOwlInfo.flyingOwlHealth, enemyArray.flyingOwlMaxHealth,
@@ -165,7 +172,13 @@ local function drawEnemyHealthBars()
     if currentWaveArray then
         for i = 1, #currentWaveArray do
             if (currentWaveArray[i]:getOriginalXLocation() ~= currentWaveArray[i]:getXLocation()) and (currentWaveArray[i]:getHealth() > 0) then
-                currentWaveArray[i]:drawHealthBar(20, 6)
+                if currentWaveArray[i]:getHeatlhTag() == "OwlBear" then
+                    currentWaveArray[i]:drawHealthBar(40, 5, 40)
+                elseif currentWaveArray[i]:getHeatlhTag() == "FlyingOwl" then
+                    currentWaveArray[i]:drawHealthBar(30, 4, 20)
+                elseif currentWaveArray[i]:getHeatlhTag() == "OwlKing" then
+                    currentWaveArray[i]:drawHealthBar(60, 8, 60)
+                end
             end
         end
     end
@@ -179,8 +192,12 @@ local function ClearOwlBearArray(enemyArray)
 end
 
 local function startNextWave()
-    
-    currentWaveArray = createEnemies(initNumEnemies)
+    if waveNum % 5 == 0 then
+        table.insert(currentWaveArray, bossInstance)
+    else
+        currentWaveArray = createEnemies(initNumEnemies)
+    end
+
     local enemyArrayLength = #currentWaveArray
 
     if spawnTimer then
@@ -198,7 +215,11 @@ local function startNextWave()
         for i = #currentWaveArray, 1, -1 do
             if currentWaveArray[i]:getHealth() <= 0 then
                 table.remove(currentWaveArray, i)
-                playerInstance:setCoins(playerInstance:getCoins() + 1)
+                if currentWaveArray[i]:getHeatlhTag() == "OwlKing" then
+                    playerInstance:setMO(playerInstance:getMO() + 1)
+                else
+                    playerInstance:setCoins(playerInstance:getCoins() + 1)
+                end
             end 
         end
 
@@ -214,8 +235,10 @@ local function startNextWave()
                 waveNum += 1
                 initNumEnemies += 1
                 waveCompleteSound:play()
+                
                 startNextWave()
 
+                -- Increase difficulty each wave
                 owlBearInfo.owlSpeed += 0.1
                 owlBearInfo.owlBearDamage += 0.5
                 owlBearInfo.owlBearMaxHealth += 0.5
@@ -225,10 +248,7 @@ local function startNextWave()
                 if not (playerInstance:getAttackFrequencyTimer() <= 1000) then
                     playerInstance:setAttackFrequencyTimer(playerInstance:getAttackFrequencyTimer() - 250)
                 end
-                if (waveNum % 5 == 0) then 
-                    playerInstance:setMaxHealth(playerInstance:getMaxHealth() + 10)
-                    playerInstance:healPlayer()
-                end
+                
                 if(time ~= 1) then 
                     time -= time*0.005 
                 end --Speed up game
@@ -421,7 +441,7 @@ function pd.update()
     elseif gameState == "playing" then
         gfx.drawText(tostring(waveNum), 195, 5)
         gfx.drawText("Feathers: " .. playerInstance:getCoins(), 300, 3)
-        gfx.drawText("MO: " .. playerInstance:getCoins(), 347, 20)
+        gfx.drawText("MO: " .. playerInstance:getMO(), 347, 20)
     
         if pd.buttonJustPressed(pd.kButtonB) then
             if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end
@@ -460,7 +480,7 @@ function pd.update()
             endGame()
         else
             --Draw Player Healthbar
-             playerInstance:drawHealthBar(50, 6)
+             playerInstance:drawHealthBar(50, 6, 40)
         end
         
         portalSprite:setImage(portalAnimation:image())

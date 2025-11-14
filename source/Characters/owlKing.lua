@@ -4,11 +4,11 @@ import "defaultCharacter"
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
-class("OwlBear").extends("DefaultCharacter")
+class("OwlKing").extends("DefaultCharacter")
 
 
-function OwlBear:init(x, y, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, speed, damage)
-    self.playerImage = gfx.image.new("./images/OwlBear.png"):scaledImage(2)
+function OwlKing:init(x, y, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, speed, damage)
+    self.playerImage = gfx.image.new("./images/OwlKing.png"):scaledImage(4)
     self.health = health
     self.maxHealth = maxHealth
     self.speed = speed
@@ -17,16 +17,16 @@ function OwlBear:init(x, y, health, maxHealth, collesionX, collesionY, collision
 
     --enemy tag
     self.tag = "Enemy"
-    self.healthtag = "OwlBear"
+    self.healthtag = "OwlKing"
 
-    OwlBear.super.init(self, x, y, self.playerImage, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, 0, 0, self.tag)
+    OwlKing.super.init(self, x, y, self.playerImage, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, 0, 0, self.tag)
 end
 
-function OwlBear:collideWith(target)
+function OwlKing:collideWith(target)
     -- Only allow projectiles to collide with the player
     if (target and target.className and target.tag == "Player") then
         self:moveTo(self.x + 10, self.y) -- Knockback effects
-        print("OwlBear hit " .. target.tag)
+        print("OwlKing hit " .. target.tag)
         if target.health then
             if target.takeDamage then
                 target:takeDamage(self.damage, self)
@@ -37,23 +37,26 @@ function OwlBear:collideWith(target)
     end
 end
 
-function OwlBear:getXLocation() return self.x end
-function OwlBear:setXLocation(x) self.x = x end
+function OwlKing:getXLocation() return self.x end
+function OwlKing:setXLocation(x) self.x = x end
 
-function OwlBear:getYLocation() return self.y end
-function OwlBear:setYLocation(y) self.y = y end
+function OwlKing:getYLocation() return self.y end
+function OwlKing:setYLocation(y) self.y = y end
 
-function OwlBear:getSpeed() return self.speed end
-function OwlBear:setSpeed(speed) self.speed = speed end
+function OwlKing:getSpeed() return self.speed end
+function OwlKing:setSpeed(speed) self.speed = speed end
 
-function OwlBear:getHealthTag() return self.healthtag end
+function OwlKing:getDamage() return self.damage end
+function OwlKing:setDamage(damage) self.damage = damage end
+
+function OwlKing:getHealthTag() return self.healthtag end
 
 -- allows overlapping without pushing back
-function OwlBear:collisionResponse(other) return "overlap" end
+function OwlKing:collisionResponse(other) return "overlap" end
 
 
-function OwlBear:update()
-    OwlBear.super.update(self)
+function OwlKing:update()
+    OwlKing.super.update(self)
 
     local x, y = self:getPosition()
     local actualX, actualY, collisions, numberOfCollisions = self:moveWithCollisions(x - self.speed, y)

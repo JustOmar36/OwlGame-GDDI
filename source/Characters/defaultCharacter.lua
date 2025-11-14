@@ -116,14 +116,14 @@ function DefaultCharacter:takeDamage(amount, source)
     end)
 end
 
-function DefaultCharacter:drawHealthBar(width, height)
+function DefaultCharacter:drawHealthBar(width, height, offset)
     -- Defensive checks
     if not self then return end
     if not self.health or not self.maxHealth or self.maxHealth == 0 then return end
 
     local x, y = self:getPosition()
     x -= width / 2
-    y -= height / 2 + 40
+    y -= height / 2 + offset
     local healthPercent = math.max(0, math.min(1, (self.health or 0) / (self.maxHealth or 1)))
     local barWidth = math.floor(width * healthPercent)
 

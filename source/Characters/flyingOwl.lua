@@ -26,6 +26,7 @@ function FlyingOwl:init(x, y, health, maxHealth, collesionX, collesionY, collisi
 
     --enemy tag
     self.tag = "Enemy"
+    self.healthtag = "FlyingOwl"
 
     FlyingOwl.super.init(self, x, y, self.playerImage, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed, projectileDamage, self.tag)
 end
@@ -113,8 +114,12 @@ function FlyingOwl:collisionCheck(projectile, numberOfCollisions, collisions)
 end
 
 function FlyingOwl:getXLocation() return self.x end
-
 function FlyingOwl:setXLocation(x) self.x = x end
+
+function FlyingOwl:getYLocation() return self.y end
+function FlyingOwl:setYLocation(y) self.y = y end
+
+function FlyingOwl:getHealthTag() return self.healthtag end
 
 -- allows overlapping without pushing back
 function FlyingOwl:collisionResponse(other) return "overlap" end

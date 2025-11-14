@@ -22,8 +22,9 @@ function Player:init(x, y, health, maxHealth, collesionX, collesionY,
 
     self.handSprite:setZIndex(1)
 
-    --player energy
+    --player coins
     self.coins = 0
+    self.MO = 0
 
     --Player Max Health
     self.maxHealth = maxHealth
@@ -43,9 +44,13 @@ function Player:init(x, y, health, maxHealth, collesionX, collesionY,
     Player.super.init(self, x, y, self.playerImage, health, maxHealth, collesionX, collesionY, collisionSizeX, collisionSizeY, projectileSpeed, projectileDamage, self.tag)
 end
 
---Energy Getter and Setter
+--Coins Getter and Setter
 function Player:getCoins() return self.coins end
 function Player:setCoins(coins) self.coins = coins end
+
+--MO Getter and Setter
+function Player:getMO() return self.MO end
+function Player:setMO(mo) self.MO = mo end
 
 --Special Ability Getter and Setter
 function Player:getSpecialAbility() return self.currentSpecialAbility end
