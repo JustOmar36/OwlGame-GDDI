@@ -21,6 +21,8 @@ function Projectiles:init(image, damage, speed, collisionSizeX, collisionSizeY)
 
     self.vx = 0
     self.vy = 0
+
+    self.knockback = 0
 end
 
 function Projectiles:collideWith(target)
@@ -28,6 +30,7 @@ function Projectiles:collideWith(target)
     if (target and target.className and target.tag == "Enemy") then
         print("Projectile hit " .. tostring(target.tag))
         if target.health then
+
             if target.takeDamage then
                 target:takeDamage(self.damage, self)
             else

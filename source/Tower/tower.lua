@@ -3,13 +3,14 @@ local gfx <const> = pd.graphics
 
 class('Tower').extends(gfx.sprite)
 
-function Tower:init(x, y, image, health, maxHealth, collesionX, collesionY, collesionSizeX, collisionSizeY, level)
+function Tower:init(x, y, image, health, maxHealth, collesionX, collesionY, collesionSizeX, collisionSizeY, level, cost)
     self:moveTo(x, y)
     self:setImage(image)
     self:setCollideRect(collesionX, collesionY, collesionSizeX, collisionSizeY)
     self.health = health
     self.maxHealth = maxHealth
     self.level = level
+    self.cost = cost
     self.tag = "Player"
 
     self.invincible = false
@@ -67,7 +68,12 @@ function Tower:spawnTower(player)
     local playerX = player:getXLocation()
     local playerY = player:getYLocation()
     local towerImage = gfx.image.new("./images/TowerTiles/Level1.png"):scaledImage(0.2)
-    local tower = Tower(playerX, playerY, towerImage, 100, 100,  0, 0, 40, 40, 1)
+    local tower = Tower(playerX, playerY, towerImage, 100, 100,  0, 0, 40, 40, 1, 2)
+    if(player:getCoins() < tower:getCost()) then
+        print("Not enough MO to build tower!")
+        return nil
+    end
+    player:setCoins(player:getCoins() - tower:getCost())
     tower:add()
     return tower
 end
@@ -106,6 +112,9 @@ function Tower:setXLocation(x) self.x = x end
 
 function Tower:getYLocation() return self.y end
 function Tower:setYLocation(y) self.y = y end
+
+function Tower:getCost() return self.cost end
+function Tower:setCost(cost) self.cost = cost end
 
 function Tower:update()
     if self.health <= 0 then

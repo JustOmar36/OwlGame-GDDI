@@ -25,7 +25,7 @@ end
 function OwlKing:collideWith(target)
     -- Only allow projectiles to collide with the player
     if (target and target.className and target.tag == "Player") then
-        self:moveTo(self.x + 10, self.y) -- Knockback effects
+        self:moveTo(self.x + 100, self.y) -- Knockback effects
         print("OwlKing hit " .. target.tag)
         if target.health then
             if target.takeDamage then

@@ -29,7 +29,7 @@ local spawnTimer
 
 --Wave Management
 local currentWaveArray = {}
-local initNumEnemies = 4
+local initNumEnemies = 2
 local waveNum = 1
 
 --Background
@@ -63,14 +63,13 @@ local playerInfo = {
     playerYlocation = 200,
     playerHealth = 100,
     playerMaxHealth = 100,
-    playerCollisionXLocation = 20,
-    playerCollisionYLocation = 30,
-    playerCollisionXSize = 10,
-    playerCollisionYSize = 10,
+    playerCollisionXLocation = 10,
+    playerCollisionYLocation = 0,
+    playerCollisionXSize = 20,
+    playerCollisionYSize = 40,
     playerProjectileSpeed = 5,
-    playerProjectileDamage = 10,
+    playerProjectileDamage = 5,
     playerAttackFrequencyTimer = 3000,
-    energyTimer = 15000,
 }
 
 local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation,
@@ -108,13 +107,13 @@ local flyingOwlInfo = {
 
 local owlKingInfo = {
     owlKingXlocation = 400,
-    owlKingYlocation = 210,
-    owlKingHealth = 100,
-    owlKingMaxHealth = 100,
-    owlCollesionX = 0,
+    owlKingYlocation = 150,
+    owlKingHealth = 20,
+    owlKingMaxHealth = 20,
+    owlCollesionX = 10,
     owlCollesionY = 0,
-    owlCollisionSizeX = 65,
-    owlCollisionSizeY = 65,
+    owlCollisionSizeX = 120,
+    owlCollisionSizeY = 120,
     owlSpeed = 1,
     owlKingDamage = 5,
 }
@@ -146,6 +145,9 @@ local specialAbilties = {
 --Spawn OwlBears and add to OwlBearArray
 local function createEnemies(numOfEnemies)
     local enemyArray = {}
+    if waveNum >= 6 then
+        numOfEnemies = math.floor(numOfEnemies / 2)
+    end
     for i = 0, numOfEnemies-1 do
         local owlBearInstance = OwlBear(owlBearInfo.owlBearXlocation, owlBearInfo.owlBearYlocation, 
                                 owlBearInfo.owlBearHealth, owlBearInfo.owlBearMaxHealth, 
@@ -172,12 +174,12 @@ local function drawEnemyHealthBars()
     if currentWaveArray then
         for i = 1, #currentWaveArray do
             if (currentWaveArray[i]:getOriginalXLocation() ~= currentWaveArray[i]:getXLocation()) and (currentWaveArray[i]:getHealth() > 0) then
-                if currentWaveArray[i]:getHeatlhTag() == "OwlBear" then
+                if currentWaveArray[i]:getHealthTag() == "OwlBear" then
                     currentWaveArray[i]:drawHealthBar(40, 5, 40)
-                elseif currentWaveArray[i]:getHeatlhTag() == "FlyingOwl" then
+                elseif currentWaveArray[i]:getHealthTag() == "FlyingOwl" then
                     currentWaveArray[i]:drawHealthBar(30, 4, 20)
-                elseif currentWaveArray[i]:getHeatlhTag() == "OwlKing" then
-                    currentWaveArray[i]:drawHealthBar(60, 8, 60)
+                elseif currentWaveArray[i]:getHealthTag() == "OwlKing" then
+                    currentWaveArray[i]:drawHealthBar(60, 8, 70)
                 end
             end
         end
@@ -208,14 +210,19 @@ local function startNextWave()
         local enemy = currentWaveArray[enemyArrayLength]
     
         if enemy then
+            if enemy:getHealthTag() == "FlyingOwl" then
+                enemy:SetPlayerYLocation(playerInstance:getYLocation())
+            end
+
             enemy:add()
             enemyArrayLength -= 1
         end
 
         for i = #currentWaveArray, 1, -1 do
             if currentWaveArray[i]:getHealth() <= 0 then
+                local defeatedEnemy = currentWaveArray[i]
                 table.remove(currentWaveArray, i)
-                if currentWaveArray[i]:getHeatlhTag() == "OwlKing" then
+                if defeatedEnemy:getHealthTag() == "OwlKing" then
                     playerInstance:setMO(playerInstance:getMO() + 1)
                 else
                     playerInstance:setCoins(playerInstance:getCoins() + 1)
@@ -446,11 +453,14 @@ function pd.update()
         if pd.buttonJustPressed(pd.kButtonB) then
             if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end
         end
-
         if pd.buttonIsPressed(pd.kButtonUp) then
             for i = 0, 2 do
                 if towers[i] == nil then
                     towers[i] = Tower:spawnTower(playerInstance)
+                    if( not towers[i] ) then
+                        break
+                    end
+                    
                     playerInstance:setYLocation(playerInstance:getYLocation() - 50)
                     playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
                     break

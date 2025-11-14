@@ -19,6 +19,8 @@ function FlyingOwl:init(x, y, health, maxHealth, collesionX, collesionY, collisi
     self.attackFrequencyTimer = attackFrquencyTimer
     self:setZIndex(1)
 
+    self.playerYlocation = 0
+
     self.randomLocation = math.random(200, 360)
 
     --timers
@@ -124,6 +126,9 @@ function FlyingOwl:getHealthTag() return self.healthtag end
 -- allows overlapping without pushing back
 function FlyingOwl:collisionResponse(other) return "overlap" end
 
+function FlyingOwl:SetPlayerYLocation(y) self.playerYlocation = y end
+function FlyingOwl:GetPlayerYLocation() return self.playerYlocation end
+
 
 function FlyingOwl:update()
     FlyingOwl.super.update(self)
@@ -139,10 +144,10 @@ function FlyingOwl:update()
         x -= self.speed
     end
     
-    local actualX, actualY, collisions, numberOfCollisions = self:moveWithCollisions(x, y)
+    self:moveTo(x, y)
 
     if timeNow - self.lastShotTimeOwl >= self.attackFrequencyTimer then
-        self:fire(x, y, 30, 200)
+        self:fire(x, y, 20, self:GetPlayerYLocation())
         self.lastShotTimeOwl = timeNow
     end
 
