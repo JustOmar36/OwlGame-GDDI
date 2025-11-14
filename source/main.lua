@@ -15,6 +15,24 @@ import "Tower/tower"
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
+--Menu Sprites
+local playGameImage = gfx.image.new("/images/Menu/Play.png"):scaledImage(0.65)
+local instructionsImage = gfx.image.new("/images/Menu/Instructions.png"):scaledImage(0.65)
+local shopImage = gfx.image.new("/images/Menu/Shop.png"):scaledImage(0.65)
+
+--Menu Index
+local rotateMenu = 0
+
+--Icons
+local featherIcon = gfx.image.new("images/Icons/FeatherIcon.png"):scaledImage(0.075)
+local moIcon = gfx.image.new("images/Icons/MOIcon.png"):scaledImage(0.5)
+
+assert( playGameImage )
+assert( instructionsImage )
+assert( shopImage )
+assert( featherIcon )
+assert( moIcon )
+
 --sound
 local backgroundMusic = pd.sound.sampleplayer.new("sounds/game.wav")
 backgroundMusic:setVolume(0.2)
@@ -22,6 +40,10 @@ local mainmenuMusic = pd.sound.sampleplayer.new("sounds/mainmenu.wav")
 mainmenuMusic:setVolume(0.2)
 local waveCompleteSound = pd.sound.sampleplayer.new("sounds/wavecomplete.wav")
 waveCompleteSound:setVolume(0.5)
+
+--Fonts
+local newFont = gfx.font.new("Fonts/ammolite_10")
+gfx.setFont(newFont)
 
 --Timers
 local time = 3000
@@ -49,7 +71,7 @@ local portalAnimation = gfx.animation.loop.new(1000, {frame1, frame2, frame3, fr
 local portalSprite = gfx.sprite.new()
 portalSprite:setImage(portalAnimation:image())
 portalSprite:moveTo(350, 150)
-portalSprite:setZIndex(0) -- pick a zIndex relative to other game objects
+portalSprite:setZIndex(0)
 
 -- Tower Array
 local towers = {}
@@ -88,7 +110,7 @@ local owlBearInfo = {
     owlCollisionSizeX = 65,
     owlCollisionSizeY = 65,
     owlSpeed = 1,
-    owlBearDamage = 5,
+    owlBearDamage = 25,
 }
 
 local flyingOwlInfo = {
@@ -108,8 +130,8 @@ local flyingOwlInfo = {
 local owlKingInfo = {
     owlKingXlocation = 400,
     owlKingYlocation = 150,
-    owlKingHealth = 20,
-    owlKingMaxHealth = 20,
+    owlKingHealth = 50,
+    owlKingMaxHealth = 50,
     owlCollesionX = 10,
     owlCollesionY = 0,
     owlCollisionSizeX = 120,
@@ -195,6 +217,13 @@ end
 
 local function startNextWave()
     if waveNum % 5 == 0 then
+        if not bossInstance or bossInstance:getHealth() <= 0 then
+            bossInstance = OwlKing(owlKingInfo.owlKingXlocation, owlKingInfo.owlKingYlocation, 
+                            owlKingInfo.owlKingHealth, owlKingInfo.owlKingMaxHealth, 
+                            owlKingInfo.owlCollesionX, owlKingInfo.owlCollesionY, owlKingInfo.owlCollisionSizeX, 
+                            owlKingInfo.owlCollisionSizeY, owlKingInfo.owlSpeed, owlKingInfo.owlKingDamage)
+        end
+
         table.insert(currentWaveArray, bossInstance)
     else
         currentWaveArray = createEnemies(initNumEnemies)
@@ -202,8 +231,10 @@ local function startNextWave()
 
     local enemyArrayLength = #currentWaveArray
 
+
     if spawnTimer then
         spawnTimer:remove()
+        spawnTimer = nil
     end
 
     spawnTimer = pd.timer.keyRepeatTimerWithDelay(time, time, function()
@@ -224,6 +255,7 @@ local function startNextWave()
                 table.remove(currentWaveArray, i)
                 if defeatedEnemy:getHealthTag() == "OwlKing" then
                     playerInstance:setMO(playerInstance:getMO() + 1)
+                    bossInstance = nil
                 else
                     playerInstance:setCoins(playerInstance:getCoins() + 1)
                 end
@@ -231,14 +263,18 @@ local function startNextWave()
         end
 
         if #currentWaveArray == 0 then
-            spawnTimer:remove()
-            spawnTimer = nil
+            if spawnTimer then
+                spawnTimer:remove()
+                spawnTimer = nil
+            end
             -- Wave is done → stop timer and auto-start next wave
             spawnTimer = pd.timer.performAfterDelay(3000, function() 
                 currentWaveArray = {}
                 --enemyArrayLength = 0
-                spawnTimer:remove()
-                spawnTimer = nil
+                if spawnTimer then
+                    spawnTimer:remove()
+                    spawnTimer = nil
+                end
                 waveNum += 1
                 initNumEnemies += 1
                 waveCompleteSound:play()
@@ -373,6 +409,8 @@ local function endGame()
     clearBackground()
     gfx.clear()
 
+    rotateMenu = 0
+
     if backgroundMusic:isPlaying() then
         backgroundMusic:stop()
     end
@@ -384,40 +422,86 @@ local function endGame()
 end
 
 local function drawInstructions()
+    rotateMenu = 0
     gfx.clear(gfx.kColorWhite)
-    gfx.setFont(gfx.getSystemFont())
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    local gameCrankIcon = gfx.image.new("images/Icons/CrankIcon.png"):scaledImage(2)
+    local bIcon = gfx.image.new("images/Icons/BButtonIcon.png"):scaledImage(2)
+    local upIcon = gfx.image.new("images/Icons/UpButtonIcon.png"):scaledImage(2)
+    local rightIcon = gfx.image.new("images/Icons/RightButtonIcon.png"):scaledImage(2)
+
+    -- Title
+    gfx.drawTextAligned("INSTRUCTIONS", 200, 10, kTextAlignment.center)
+
+    -- Crank Icon
+    gameCrankIcon:draw(20, 40)
+    gfx.drawText("Use the crank to aim your projectiles", 60, 52.5)
+
+    -- B Button Icon
+    bIcon:draw(20, 100)
+    gfx.drawText("Press B to spawn your special ability", 60, 112.5)
+
+    --UpButtonIcon
+    upIcon:draw(20, 160)
+    gfx.drawText("Press Up to build a tower (max 3)", 60, 172.5)
+
+    --RightButtonIcon
+    rightIcon:draw(350, 200)
+    gfx.drawText("Next", 310, 212)
+
+    --Draw Back Button
+    bIcon:draw(10, 200)
+    gfx.drawText("Main Menu", 50, 212)
+    if pd.buttonJustPressed(pd.kButtonB) then
+        gfx.clear()
+        gameState = "stopped"
+    end
+
+    if pd.buttonJustPressed(pd.kButtonRight) then
+        gfx.clear()
+        gameState = "instructions2"
+    end
+end
+
+local function drawInstructions2()
+    gfx.clear(gfx.kColorWhite)
     gfx.setImageDrawMode(gfx.kDrawModeCopy)
 
     -- Title
-    gfx.drawTextAligned("How to Play", 200, 20, kTextAlignment.center)
+    gfx.drawTextAligned("INSTRUCTIONS", 200, 10, kTextAlignment.center)
 
-    -- Instruction lines (reworded for clarity)
-    local instructions = {
-        "Turn the crank to aim your shots",
-        "Shoot Owl Bears to stay alive",
-        "Each wave grows faster and tougher",
-        "Gain 10 extra health points every 5 waves",
-        "Press B to unleash Scooter Power", 
-        "(Requires 2 Energy):",
-        "  - Deals heavy damage",
-        "  - Knocks enemies back",
-        "Reach Wave 15 to Win!",
-        "",
-        "Press B again to return to Main Menu"
-    }
+    -- Feather Icon
+    featherIcon:draw(20, 37.5)
+    gfx.drawText("Collect feathers by defeating enemies", 60, 52.5)
 
-    -- Center block of text vertically
-    local startY = 35
-    local lineSpacing = 18
-    for i, line in ipairs(instructions) do
-        gfx.drawText(line, 30, startY + (i - 1) * lineSpacing)
-    end
+    -- MO Icon
+    moIcon:draw(20, 100)
+    gfx.drawText("Collect Mantled Owls (MO) by defeating \nbosses", 60, 106)
+
+    --Draw Back Button
+    local bIcon = gfx.image.new("images/Icons/BButtonIcon.png"):scaledImage(2)
+    bIcon:draw(10, 200)
+    gfx.drawText("Main Menu", 50, 212)
 
     if pd.buttonJustPressed(pd.kButtonB) then
         gfx.clear()
         gameState = "stopped"
     end
 end
+
+local function drawShop()
+    rotateMenu = 0
+    gfx.clear(gfx.kColorWhite)
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    gfx.drawTextAligned("Coming Soon", 200, 20, kTextAlignment.center)
+    gfx.drawTextAligned("Press B to return to Main Menu", 200, 200, kTextAlignment.center)
+
+    if pd.buttonJustPressed(pd.kButtonB) then
+        gfx.clear()
+        gameState = "stopped"
+    end
+end
+
 
 --Update
 function pd.update()
@@ -430,25 +514,59 @@ function pd.update()
 
         gfx.clear(gfx.kColorWhite)
         playerAnimation:draw(177, 17)
-        gfx.drawText("Owl Invasion", 40, 25)
-        gfx.drawText("Press A to Start", 25, 50)
-        gfx.drawText("Press B for Instructions", 25, 75)
+        gfx.drawText("Owl Invasion", 48, 25)
+        
+        if rotateMenu == 0 then
+            playGameImage:setInverted(true)
+            instructionsImage:setInverted(false)
+            shopImage:setInverted(false)
+        elseif rotateMenu == 1 then
+            playGameImage:setInverted(false)
+            instructionsImage:setInverted(true)
+            shopImage:setInverted(false)
+        elseif rotateMenu == 2 then
+            playGameImage:setInverted(false)
+            instructionsImage:setInverted(false)
+            shopImage:setInverted(true)
+        end
+            
+        playGameImage:draw(10, 50)
+        instructionsImage:draw(10, 100)
+        shopImage:draw(10, 150)
+
+        if pd.buttonJustPressed(pd.kButtonDown) then
+            rotateMenu += 1
+            if rotateMenu > 2 then
+                rotateMenu = 0
+            end
+        elseif pd.buttonJustPressed(pd.kButtonUp) then
+            rotateMenu -= 1
+            if rotateMenu < 0 then
+                rotateMenu = 2
+            end
+        end
 
         --Start Game
         if pd.buttonJustPressed(pd.kButtonA) then
             gfx.clear()
-            playGame()
-        end
-
-        if pd.buttonJustPressed(pd.kButtonB) then
-            gfx.clear()
-            gameState = "instructions"
+            if rotateMenu == 0 then
+                playGame()
+            elseif rotateMenu == 1 then
+                gameState = "instructions"
+            elseif rotateMenu == 2 then
+                gameState = "shop"
+            end
         end
 
     elseif gameState == "playing" then
         gfx.drawText(tostring(waveNum), 195, 5)
-        gfx.drawText("Feathers: " .. playerInstance:getCoins(), 300, 3)
-        gfx.drawText("MO: " .. playerInstance:getMO(), 347, 20)
+        local featherGameIcon = gfx.image.new("images/Icons/FeatherIcon.png"):scaledImage(0.045)
+        featherGameIcon:draw(340, 1)
+        gfx.drawText(": " .. playerInstance:getCoins(), 370, 5)
+
+        local moIcon = gfx.image.new("images/Icons/MOIcon.png"):scaledImage(0.35)
+        moIcon:draw(337, 20)
+        gfx.drawText(": " .. playerInstance:getMO(), 370, 26)
     
         if pd.buttonJustPressed(pd.kButtonB) then
             if (playerInstance:getSpecialAbility() == "scooter") then spawnScooter() end
@@ -460,7 +578,7 @@ function pd.update()
                     if( not towers[i] ) then
                         break
                     end
-                    
+
                     playerInstance:setYLocation(playerInstance:getYLocation() - 50)
                     playerInstance:moveTo(playerInstance:getXLocation(), playerInstance:getYLocation())
                     break
@@ -497,6 +615,12 @@ function pd.update()
     
     elseif gameState == "instructions" then
         drawInstructions()
+
+    elseif gameState == "instructions2" then
+        drawInstructions2()
+
+    elseif gameState == "shop" then
+        drawShop()
     end
 
     pd.timer.updateTimers()
