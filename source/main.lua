@@ -384,7 +384,7 @@ local function startNextWave()
                     bossInstance = nil
 
                     -- Reward: permanently increase player's max health by 2 and heal to full
-                    local newMax = playerInstance:getMaxHealth() + 2
+                    local newMax = playerInstance:getMaxHealth() + 5
                     playerInstance:setMaxHealth(newMax)
                     if playerInstance.healPlayer then
                         playerInstance:healPlayer()
@@ -393,12 +393,12 @@ local function startNextWave()
                     end
 
                     -- Buff scooter damage after boss defeat (cap to avoid runaway)
-                    scooterInfo.scooterDamage = math.min(50, (scooterInfo.scooterDamage or 0) + 2)
+                    scooterInfo.scooterDamage = math.min(50, (scooterInfo.scooterDamage or 0) + 3)
 
                     -- Show feedback popups anchored to player and stacked; longer duration
                     if showPopup then
-                        showPopup("+2 Health", nil, nil, 2500, "player")
-                        showPopup("+2 Scooter Damage", nil, nil, 2500, "player")
+                        showPopup("+5 Health", nil, nil, 2500, "player")
+                        showPopup("+3 Scooter Damage", nil, nil, 2500, "player")
                     end
                 else
                     playerInstance:setCoins(playerInstance:getCoins() + 1)
