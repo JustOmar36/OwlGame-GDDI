@@ -68,7 +68,7 @@ function Tower:spawnTower(player)
     local playerX = player:getXLocation()
     local playerY = player:getYLocation()
     local towerImage = gfx.image.new("./images/TowerTiles/Level1.png"):scaledImage(0.2)
-    local tower = Tower(playerX, playerY, towerImage, 100, 100,  0, 0, 40, 40, 1, 2)
+    local tower = Tower(playerX, playerY, towerImage, 100, 100,  0, 0, 40, 40, 1, 3)
     if(player:getCoins() < tower:getCost()) then
         print("Not enough MO to build tower!")
         return nil

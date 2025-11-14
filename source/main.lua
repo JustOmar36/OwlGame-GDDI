@@ -83,15 +83,15 @@ local gameState = "stopped"
 local playerInfo = {
     playerXlocation = 50,
     playerYlocation = 200,
-    playerHealth = 100,
-    playerMaxHealth = 100,
+    playerHealth = 120,
+    playerMaxHealth = 120,
     playerCollisionXLocation = 10,
     playerCollisionYLocation = 0,
     playerCollisionXSize = 20,
     playerCollisionYSize = 40,
     playerProjectileSpeed = 5,
-    playerProjectileDamage = 5,
-    playerAttackFrequencyTimer = 3000,
+    playerProjectileDamage = 6,
+    playerAttackFrequencyTimer = 2400,
 }
 
 local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYlocation,
@@ -103,41 +103,41 @@ local playerInstance = Player(playerInfo.playerXlocation, playerInfo.playerYloca
 local owlBearInfo = {
     owlBearXlocation = 400,
     owlBearYlocation = 210,
-    owlBearHealth = 10,
-    owlBearMaxHealth = 10,
+    owlBearHealth = 8,
+    owlBearMaxHealth = 8,
     owlCollesionX = 0,
     owlCollesionY = 0,
     owlCollisionSizeX = 65,
     owlCollisionSizeY = 65,
-    owlSpeed = 1,
-    owlBearDamage = 25,
+    owlSpeed = 0.9,
+    owlBearDamage = 8,
 }
 
 local flyingOwlInfo = {
     flyingOwlXlocation = 400,
-    flyingOwlHealth = 10,
-    flyingOwlMaxHealth = 10,
+    flyingOwlHealth = 6,
+    flyingOwlMaxHealth = 6,
     owlCollesionX = 0,
     owlCollesionY = 0,
     owlCollisionSizeX = 65,
     owlCollisionSizeY = 65,
-    owlSpeed = 1,
+    owlSpeed = 1.2,
     flyingProjectileSpeed = 5,
-    flyingProjectileDamage = 1,
-    AttackFrequencyTimer = 5000,
+    flyingProjectileDamage = 2,
+    AttackFrequencyTimer = 4200,
 }
 
 local owlKingInfo = {
     owlKingXlocation = 400,
     owlKingYlocation = 150,
-    owlKingHealth = 50,
-    owlKingMaxHealth = 50,
+    owlKingHealth = 80,
+    owlKingMaxHealth = 80,
     owlCollesionX = 10,
     owlCollesionY = 0,
     owlCollisionSizeX = 120,
     owlCollisionSizeY = 120,
-    owlSpeed = 1,
-    owlKingDamage = 5,
+    owlSpeed = 0.9,
+    owlKingDamage = 12,
 }
 
 local bossInstance = OwlKing(owlKingInfo.owlKingXlocation, owlKingInfo.owlKingYlocation, 
@@ -165,31 +165,142 @@ local specialAbilties = {
 }
 
 --Spawn OwlBears and add to OwlBearArray
-local function createEnemies(numOfEnemies)
+local function createEnemies(numOfEnemies, difficulty)
     local enemyArray = {}
+    difficulty = difficulty or 1
+
+    -- reduce number of melee enemies on later waves to mix variety
     if waveNum >= 6 then
-        numOfEnemies = math.floor(numOfEnemies / 2)
+        numOfEnemies = math.max(1, math.floor(numOfEnemies / 2))
     end
+
     for i = 0, numOfEnemies-1 do
-        local owlBearInstance = OwlBear(owlBearInfo.owlBearXlocation, owlBearInfo.owlBearYlocation, 
-                                owlBearInfo.owlBearHealth, owlBearInfo.owlBearMaxHealth, 
-                                owlBearInfo.owlCollesionX, owlBearInfo.owlCollesionY, owlBearInfo.owlCollisionSizeX, 
-                                owlBearInfo.owlCollisionSizeY, owlBearInfo.owlSpeed, owlBearInfo.owlBearDamage)
+        local scaledHealth = math.max(1, math.floor(owlBearInfo.owlBearMaxHealth * difficulty + 0.5))
+        local scaledDamage = math.max(1, math.floor(owlBearInfo.owlBearDamage * difficulty + 0.5))
+        local scaledSpeed = owlBearInfo.owlSpeed * (1 + (difficulty - 1) * 0.3)
+
+        local owlBearInstance = OwlBear(
+            owlBearInfo.owlBearXlocation,
+            owlBearInfo.owlBearYlocation,
+            scaledHealth,
+            scaledHealth,
+            owlBearInfo.owlCollesionX,
+            owlBearInfo.owlCollesionY,
+            owlBearInfo.owlCollisionSizeX,
+            owlBearInfo.owlCollisionSizeY,
+            scaledSpeed,
+            scaledDamage
+        )
         table.insert(enemyArray, owlBearInstance)
 
+        -- On hard waves, add a flying owl per melee enemy for variety
         if waveNum >= 6 then
             local randomYAxis = math.random(90, 110)
-            local flyingOwlInstance = FlyingOwl(flyingOwlInfo.flyingOwlXlocation, randomYAxis, 
-                                    flyingOwlInfo.flyingOwlHealth, enemyArray.flyingOwlMaxHealth,
-                                    flyingOwlInfo.owlCollesionX, flyingOwlInfo.owlCollesionY,
-                                    flyingOwlInfo.owlCollisionSizeX, flyingOwlInfo.owlCollisionSizeY,
-                                    flyingOwlInfo.owlSpeed, flyingOwlInfo.flyingProjectileSpeed,
-                                    flyingOwlInfo.flyingProjectileDamage, flyingOwlInfo.AttackFrequencyTimer)
+            local fScaledHealth = math.max(1, math.floor(flyingOwlInfo.flyingOwlMaxHealth * difficulty + 0.5))
+            local fScaledDamage = math.max(1, math.floor(flyingOwlInfo.flyingProjectileDamage * difficulty + 0.5))
+            local fScaledSpeed = flyingOwlInfo.owlSpeed * (1 + (difficulty - 1) * 0.25)
+
+            local flyingOwlInstance = FlyingOwl(
+                flyingOwlInfo.flyingOwlXlocation,
+                randomYAxis,
+                fScaledHealth,
+                fScaledHealth,
+                flyingOwlInfo.owlCollesionX,
+                flyingOwlInfo.owlCollesionY,
+                flyingOwlInfo.owlCollisionSizeX,
+                flyingOwlInfo.owlCollisionSizeY,
+                fScaledSpeed,
+                flyingOwlInfo.flyingProjectileSpeed,
+                fScaledDamage,
+                flyingOwlInfo.AttackFrequencyTimer
+            )
             table.insert(enemyArray, flyingOwlInstance)
         end
     end
 
     return enemyArray
+end
+
+-- Small helper to show temporary text popups (no-fade simple implementation)
+-- Popup manager for simple temporary text above player or at arbitrary coords.
+local activePlayerPopups = {}
+local function repositionPlayerPopups()
+    -- Display active player popups in the middle of the screen stacked vertically
+    local screenW, screenH = pd.display.getWidth(), pd.display.getHeight()
+    local centerX, centerY = screenW / 2, screenH / 2
+    for i, p in ipairs(activePlayerPopups) do
+        if p then
+            local removed = (p.isRemoved and p:isRemoved()) or false
+            if not removed then
+                -- Stack them centered: first slightly above center, subsequent below
+                local offsetY = -10 + ((i - 1) * 22)
+                p:moveTo(centerX, centerY + offsetY)
+            end
+        end
+    end
+end
+
+local function showPopup(text, x, y, duration, anchor)
+    duration = duration or 3000
+    anchor = anchor or "none"
+
+    local w, h = 180, 25
+    local img = gfx.image.new(w, h)
+
+    gfx.pushContext(img)
+    gfx.setImageDrawMode(gfx.kDrawModeCopy)
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillRect(0, 0, w, h)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.setFont(newFont)
+    gfx.drawTextAligned(text, w / 2, h / 2  , kTextAlignment.center)
+    gfx.popContext()
+
+    local popup = gfx.sprite.new(img)
+    popup:setZIndex(1)
+
+    if anchor == "player" and playerInstance then
+        -- place above the player and push into active list
+        table.insert(activePlayerPopups, popup)
+        repositionPlayerPopups()
+    else
+        popup:moveTo(x or (pd.display.getWidth() - 80), y or 24)
+    end
+
+    popup:add()
+
+    local stepDelay = 60 -- ms per step
+    local steps = math.max(1, math.floor(duration / stepDelay))
+
+    for i = 1, steps do
+        local t = i * stepDelay
+        pd.timer.performAfterDelay(t, function()
+            if not popup then return end
+            local removed = (not popup) or false
+            if removed then return end
+
+            -- near the end, do a simple blink to mimic fade on monochrome screen
+            if i >= steps - 4 then
+                -- toggle visibility on last two frames
+                popup:setVisible((i % 2) == 0)
+            end
+
+            -- final step: cleanup
+            if i == steps then
+                if anchor == "player" then
+                    for j = #activePlayerPopups, 1, -1 do
+                        if activePlayerPopups[j] == popup then
+                            table.remove(activePlayerPopups, j)
+                        end
+                    end
+                    repositionPlayerPopups()
+                end
+                if ((popup)) then
+                    popup:remove()
+                end
+            end
+        end)
+    end
 end
 
 local function drawEnemyHealthBars()
@@ -216,21 +327,36 @@ local function ClearOwlBearArray(enemyArray)
 end
 
 local function startNextWave()
+    -- Difficulty multiplier grows slowly with waves; cap it so game stays winnable
+    local difficulty = 1 + math.min((waveNum - 1) * 0.05, 3) -- +5% per wave, max +300%
+
+    -- Prepare wave enemies (boss every 5th)
     if waveNum % 5 == 0 then
+        -- create scaled boss for the wave
         if not bossInstance or bossInstance:getHealth() <= 0 then
-            bossInstance = OwlKing(owlKingInfo.owlKingXlocation, owlKingInfo.owlKingYlocation, 
-                            owlKingInfo.owlKingHealth, owlKingInfo.owlKingMaxHealth, 
-                            owlKingInfo.owlCollesionX, owlKingInfo.owlCollesionY, owlKingInfo.owlCollisionSizeX, 
-                            owlKingInfo.owlCollisionSizeY, owlKingInfo.owlSpeed, owlKingInfo.owlKingDamage)
+            local scaledBossHealth = math.max(10, math.floor(owlKingInfo.owlKingMaxHealth * difficulty + 0.5))
+            local scaledBossDamage = math.max(1, math.floor(owlKingInfo.owlKingDamage * difficulty + 0.5))
+            local scaledBossSpeed = owlKingInfo.owlSpeed * (1 + (difficulty - 1) * 0.2)
+            bossInstance = OwlKing(
+                owlKingInfo.owlKingXlocation,
+                owlKingInfo.owlKingYlocation,
+                scaledBossHealth,
+                scaledBossHealth,
+                owlKingInfo.owlCollesionX,
+                owlKingInfo.owlCollesionY,
+                owlKingInfo.owlCollisionSizeX,
+                owlKingInfo.owlCollisionSizeY,
+                scaledBossSpeed,
+                scaledBossDamage
+            )
         end
 
-        table.insert(currentWaveArray, bossInstance)
+        currentWaveArray = { bossInstance }
     else
-        currentWaveArray = createEnemies(initNumEnemies)
+        currentWaveArray = createEnemies(initNumEnemies, difficulty)
     end
 
     local enemyArrayLength = #currentWaveArray
-
 
     if spawnTimer then
         spawnTimer:remove()
@@ -239,9 +365,9 @@ local function startNextWave()
 
     spawnTimer = pd.timer.keyRepeatTimerWithDelay(time, time, function()
         local enemy = currentWaveArray[enemyArrayLength]
-    
+
         if enemy then
-            if enemy:getHealthTag() == "FlyingOwl" then
+            if enemy:getHealthTag() == "FlyingOwl" and playerInstance then
                 enemy:SetPlayerYLocation(playerInstance:getYLocation())
             end
 
@@ -256,10 +382,28 @@ local function startNextWave()
                 if defeatedEnemy:getHealthTag() == "OwlKing" then
                     playerInstance:setMO(playerInstance:getMO() + 1)
                     bossInstance = nil
+
+                    -- Reward: permanently increase player's max health by 2 and heal to full
+                    local newMax = playerInstance:getMaxHealth() + 2
+                    playerInstance:setMaxHealth(newMax)
+                    if playerInstance.healPlayer then
+                        playerInstance:healPlayer()
+                    else
+                        playerInstance:setHealth(playerInstance:getMaxHealth())
+                    end
+
+                    -- Buff scooter damage after boss defeat (cap to avoid runaway)
+                    scooterInfo.scooterDamage = math.min(50, (scooterInfo.scooterDamage or 0) + 2)
+
+                    -- Show feedback popups anchored to player and stacked; longer duration
+                    if showPopup then
+                        showPopup("+2 Health", nil, nil, 2500, "player")
+                        showPopup("+2 Scooter Damage", nil, nil, 2500, "player")
+                    end
                 else
                     playerInstance:setCoins(playerInstance:getCoins() + 1)
                 end
-            end 
+            end
         end
 
         if #currentWaveArray == 0 then
@@ -267,34 +411,34 @@ local function startNextWave()
                 spawnTimer:remove()
                 spawnTimer = nil
             end
+
             -- Wave is done → stop timer and auto-start next wave
-            spawnTimer = pd.timer.performAfterDelay(3000, function() 
+            spawnTimer = pd.timer.performAfterDelay(1200, function()
                 currentWaveArray = {}
-                --enemyArrayLength = 0
                 if spawnTimer then
                     spawnTimer:remove()
                     spawnTimer = nil
                 end
-                waveNum += 1
-                initNumEnemies += 1
-                waveCompleteSound:play()
-                
-                startNextWave()
 
-                -- Increase difficulty each wave
-                owlBearInfo.owlSpeed += 0.1
-                owlBearInfo.owlBearDamage += 0.5
-                owlBearInfo.owlBearMaxHealth += 0.5
-                owlBearInfo.owlBearHealth = owlBearInfo.owlBearMaxHealth
-                playerInstance:setProjectileSpeed(playerInstance:getProjectSpeed() + 0.2)
-                playerInstance:setProjectileDamage(playerInstance:getProjectileDamage() + 0.5)
-                if not (playerInstance:getAttackFrequencyTimer() <= 1000) then
-                    playerInstance:setAttackFrequencyTimer(playerInstance:getAttackFrequencyTimer() - 250)
+                -- progress wave and gently increase enemy count (cap max)
+                waveNum += 1
+                initNumEnemies = math.min(12, initNumEnemies + 1)
+                waveCompleteSound:play()
+
+                -- Tweak global pacing: slightly speed up spawn rhythm but never too fast
+                time = math.max(400, math.floor(time * 0.97))
+
+                -- Remove automatic player stat inflation; keep player's growth tied to items
+                -- but allow small auto-adjustments with caps to keep pace with enemies
+                local pProjSpeed = math.min(12, playerInstance:getProjectSpeed() + 0.05)
+                playerInstance:setProjectileSpeed(pProjSpeed)
+                local pProjDamage = math.min(20, playerInstance:getProjectileDamage() + 0.1)
+                playerInstance:setProjectileDamage(pProjDamage)
+                if playerInstance:getAttackFrequencyTimer() > 900 then
+                    playerInstance:setAttackFrequencyTimer(math.max(900, playerInstance:getAttackFrequencyTimer() - 100))
                 end
-                
-                if(time ~= 1) then 
-                    time -= time*0.005 
-                end --Speed up game
+
+                startNextWave()
             end)
         end
     end)
@@ -470,22 +614,42 @@ local function drawInstructions2()
     -- Title
     gfx.drawTextAligned("INSTRUCTIONS", 200, 10, kTextAlignment.center)
 
-    -- Feather Icon
-    featherIcon:draw(20, 37.5)
-    gfx.drawText("Collect feathers by defeating enemies", 60, 52.5)
+    -- Feather Icon (row 1)
+    featherIcon:draw(20, 27.5)
+    gfx.drawText("Collect feathers by defeating enemies", 60, 42.5)
 
-    -- MO Icon
-    moIcon:draw(20, 100)
-    gfx.drawText("Collect Mantled Owls (MO) by defeating \nbosses", 60, 106)
+    -- MO Icon (row 2)
+    moIcon:draw(20, 70)
+    gfx.drawText("Collect Mantled Owls (MO)\nby defeating bosses", 60, 85)
 
-    --Draw Back Button
+    -- Scooter Icon (row 3)
+    local scooterIcon = gfx.image.new("images/V-Scooter.png"):scaledImage(1)
+    scooterIcon:draw(20, 112.5)
+    gfx.drawText("Scooter Ability Requires 2x", 60, 127.5)
+    featherIcon:draw(290, 112.5)
+
+    -- Tower Tile Icon (row 4) — moved up to avoid overlapping bottom buttons
+    local towerTileIcon = gfx.image.new("images/TowerTiles/Level1.png"):scaledImage(0.125)
+    towerTileIcon:draw(20, 155)
+    gfx.drawText("Each Tower Costs 3x", 60, 170)
+    featherIcon:draw(225, 155)
+
+    --Draw Back Button (bottom)
     local bIcon = gfx.image.new("images/Icons/BButtonIcon.png"):scaledImage(2)
     bIcon:draw(10, 200)
     gfx.drawText("Main Menu", 50, 212)
 
+    local leftIcon = gfx.image.new("images/Icons/LeftButtonIcon.png"):scaledImage(2)
+    leftIcon:draw(350, 200)
+    gfx.drawText("Back", 310, 212)
     if pd.buttonJustPressed(pd.kButtonB) then
         gfx.clear()
         gameState = "stopped"
+    end
+
+    if pd.buttonJustPressed(pd.kButtonLeft) then
+        gfx.clear()
+        gameState = "instructions"
     end
 end
 

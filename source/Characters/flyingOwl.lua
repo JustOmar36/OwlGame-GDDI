@@ -140,10 +140,16 @@ function FlyingOwl:update()
     -- Move left across the screen
     local x, y = self:getPosition()
 
-    if(x ~= self.randomLocation) then
-        x -= self.speed
+    -- Move left across the screen and stop at the randomLocation without overshooting
+    if x > self.randomLocation then
+        local nextX = x - self.speed
+        if nextX < self.randomLocation then
+            x = self.randomLocation
+        else
+            x = nextX
+        end
     end
-    
+
     self:moveTo(x, y)
 
     if timeNow - self.lastShotTimeOwl >= self.attackFrequencyTimer then
